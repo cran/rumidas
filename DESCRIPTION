@@ -1,0 +1,22 @@
+Package: rumidas
+Title: Univariate GARCH-MIDAS, Double-Asymmetric GARCH-MIDAS and
+        MEM-MIDAS
+Version: 0.1.0
+Authors@R: person("Vincenzo", "Candila", email="vincenzo.candila@uniroma1.it", role=c("aut", "cre"))
+Description: Adds the MIxing Data Sampling (MIDAS, Ghysels et al. (2007) <doi:10.1080/07474930600972467>) components within the GARCH (Engle et al. (2013) <doi:10.1162/REST_a_00300>) and MEM (Engle (2002) <doi:10.1002/jae.683>) frameworks, with the aim of predicting the volatility with additional low-frequency (that is, MIDAS) terms. The estimation takes place through simple functions, which provide in-sample and (if present) and out-of-sample evaluations. 'rumidas' also offers a summary tool, which synthesizes the main information of the estimated model. Finally, an option to generate one-step-ahead volatility forecasts automatically divides the whole period into a training and testing samples. 
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+RdMacros: Rdpack
+Depends: R (>= 4.0.0), maxLik (>= 1.3-8)
+Imports: highfrequency (>= 0.6.5), roll (>= 1.1.4), xts (>= 0.12.0),
+        tseries (>= 0.10.47), Rdpack (>= 1.0.0), lubridate (>= 1.7.9),
+        zoo (>= 1.8.8), stats (>= 4.0.2), utils (>= 4.0.2)
+Suggests: knitr, rmarkdown
+NeedsCompilation: no
+Packaged: 2020-09-14 13:40:42 UTC; Vincenzo
+Author: Vincenzo Candila [aut, cre]
+Maintainer: Vincenzo Candila <vincenzo.candila@uniroma1.it>
+Repository: CRAN
+Date/Publication: 2020-09-22 08:50:02 UTC

@@ -1,0 +1,20 @@
+citHeader("When using rumidas in publications, please cite:")
+
+## R >= 2.8.0 passes package metadata to citation().
+if(!exists("meta") || is.null(meta)) meta <- packageDescription("rumidas")
+
+year <- 2020
+note <- sprintf("R package version %s.", meta$Version)
+
+citEntry(entry="Manual",
+         title = "rumidas: Univariate GARCH-MIDAS, Double-Asymmetric GARCH-MIDAS and MEM-MIDAS models.",
+         author = personList(as.person("Vincenzo Candila")),
+         year         = year,
+         note         = note,
+         textVersion = 
+         paste("Vincenzo Candila",
+               sprintf("(%s).", year),
+               "rumidas: Univariate GARCH-MIDAS, Double-Asymmetric GARCH-MIDAS and MEM-MIDAS models.",
+	       note),
+	 header = "To cite the rumidas package, please use:"
+)
