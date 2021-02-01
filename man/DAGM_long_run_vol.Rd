@@ -4,7 +4,7 @@
 \alias{DAGM_long_run_vol}
 \title{DAGM (daily) long-run volatility (with skewness)}
 \usage{
-DAGM_long_run_vol(param, daily_ret, mv_m, K)
+DAGM_long_run_vol(param, daily_ret, mv_m, K, lag_fun = "Beta")
 }
 \arguments{
 \item{param}{Vector of estimated values. It must be a eight- or nine- dimensional vector. See the examples below.}
@@ -14,6 +14,9 @@ DAGM_long_run_vol(param, daily_ret, mv_m, K)
 \item{mv_m}{MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.}
 
 \item{K}{Number of (lagged) realizations of the MIDAS variable to consider.}
+
+\item{lag_fun}{\strong{optional}. Lag function to use. Valid choices are "Beta" (by default) and "Almon",
+for the Beta and Exponential Almon lag functions, respectively.}
 }
 \value{
 The resulting vector is an "xts" object representing the conditional volatility.

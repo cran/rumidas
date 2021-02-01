@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{MEM_QMLE_sd}
 \alias{MEM_QMLE_sd}
-\title{Standard errors for the Quasi Maximum Likelihood estimator of the GARCH-MIDAS-based models}
+\title{Standard errors for the Quasi Maximum Likelihood estimator of the MEM-based models}
 \usage{
 MEM_QMLE_sd(est, x, x_pred)
 }

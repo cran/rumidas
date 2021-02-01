@@ -7,7 +7,7 @@
 MEM_loglik_no_skew(param, x)
 }
 \arguments{
-\item{param}{Vector of starting values. It must be a two--dimensional vector. See the example below.}
+\item{param}{Vector of starting values.}
 
 \item{x}{Dependent variable, usually the realized volatility. It must be positive and "xts" object.}
 }

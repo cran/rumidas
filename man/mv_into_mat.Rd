@@ -13,14 +13,14 @@ mv_into_mat(x, mv, K, type)
 
 \item{K}{Number of (lagged) realizations of the MIDAS variable to consider.}
 
-\item{type}{The frequency of the period of observations for the MIDAS variable. It can be 'weekly', 'monthly' or 'quarterly'.}
+\item{type}{The frequency of the period of observations for the MIDAS variable. It can be 'weekly', 'monthly', 'quarterly' or 'yearly'.}
 }
 \value{
 The resulting matrix has as many rows as the number of lagged realizations (plus one) of the MIDAS variable
 to consider, and as many columns as the length of \eqn{x}.
 }
 \description{
-Implements the trasformation of the MIDAS variable into a matrix, whose dimension is
+Implements the transformation of the MIDAS variable into a matrix, whose dimension is
 \eqn{(K+1) \times N}, where \eqn{K} is the number of lagged realizations to consider and
 \eqn{N} is the length of the variable \eqn{x}.
 }
@@ -33,17 +33,22 @@ Implements the trasformation of the MIDAS variable into a matrix, whose dimensio
 # RV_weekly<-as.xts(coredata(RV_weekly_sum),seq(as.Date("2000-01-10"), 
 # by = "week", length.out = length(RV_weekly_sum)))
 # use mv_into_mat (two cases, the second one does not work)
-# mv_into_mat(sp500['2002/2003-12-26'],diff(RV_weekly['/2003-12']),K=4,"weekly")
+# mv_into_mat(sp500['2002/2003-12-26'],diff(RV_weekly['/2003-12']),K=4,type="weekly")
 # mv_into_mat(sp500['2002/2003-12-26'],diff(RV_weekly['/2005-12']),K=4,"weekly") #does not work
 
 # monthly frequency
 # r_t<-sp500['2005/2010']
-# mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+# mv_into_mat(r_t,diff(indpro),K=12,type="monthly")
 
 # quarterly frequency
 # RV_quarterly_sum<-apply.quarterly(rv5,sum)
 # RV_quarterly<-as.xts(coredata(RV_quarterly_sum),seq(as.Date("2000-04-01"), 
 # by = "quarter", length.out = length(RV_quarterly_sum)))
-# mv_into_mat(sp500['2004/2010'],diff(RV_quarterly),K=10,"quarterly")
+# mv_into_mat(sp500['2004/2010'],diff(RV_quarterly),K=10,type="quarterly")
 
+# yearly frequency
+# RV_yearly_sum<-apply.yearly(rv5,sum)
+# RV_yearly<-as.xts(coredata(RV_yearly_sum),seq(as.Date("2001-01-01"), 
+# by = "year", length.out = length(RV_yearly_sum)))
+# mv_into_mat(sp500['2006/2010'],diff(RV_yearly),K=2,type="yearly")
 }

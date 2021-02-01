@@ -7,7 +7,7 @@
 MEM_MIDAS_lr_pred_no_skew(param, x, mv_m, K)
 }
 \arguments{
-\item{param}{Vector of starting values. It must be a five--dimensional vector. See the example below.}
+\item{param}{Vector of starting values.}
 
 \item{x}{Dependent variable, usually the realized volatility. It must be positive and "xts" object.}
 

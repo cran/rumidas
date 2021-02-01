@@ -11,28 +11,36 @@ ugmfit(
   daily_ret,
   mv_m,
   K,
+  lag_fun = "Beta",
+  X = NULL,
   out_of_sample = NULL,
   vol_proxy = NULL
 )
 }
 \arguments{
-\item{model}{Model to estimate. Valid choices are: "GM" for GARCH-MIDAS, "DAGM" for Double Asymmetric GARCH-MIDAS.}
+\item{model}{Model to estimate. Valid choices are: "GM" for GARCH-MIDAS, "GMX" for GARCH-MIDAS-X,
+"DAGM" for Double Asymmetric GARCH-MIDAS (DAGM), and "DAGMX" for DAGM-X}
 
-\item{skew}{The skewness parameter to include in the short-run equation. Valid choices are: "YES" and "NO".}
+\item{skew}{The skewness parameter to include in the short--run equation. Valid choices are: "YES" and "NO"}
 
 \item{distribution}{The conditional density to use for the innovations. At the moment, valid choices are "norm" and "std",
-for the Normal and Student-t distribution, respectively.}
+for the Normal and Student-t distribution, respectively}
 
-\item{daily_ret}{Daily returns, which must be an "xts" object.}
+\item{daily_ret}{Daily returns, which must be an "xts" objectparamter}
 
-\item{mv_m}{MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.}
+\item{mv_m}{MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function}
 
-\item{K}{Number of (lagged) realizations of the MIDAS variable to consider.}
+\item{K}{Number of (lagged) realizations of the MIDAS variable to consider}
 
-\item{out_of_sample}{\strong{optional}. A positive integer indicating the number of periods before the last to keep for out of sample forecasting.}
+\item{lag_fun}{\strong{optional} Lag function to use. Valid choices are "Beta" (by default) and "Almon",
+for the Beta and Exponential Almon lag functions, respectively}
 
-\item{vol_proxy}{\strong{optional}. If present, the vol_proxy is the volatilty proxy used for the in-sample and out-of-sample (again, if present) evaluation.
-It could be the realized variance. If it left unspecified, vol_proxy is replaced by the squared daily returns.}
+\item{X}{\strong{optional} Additional "X" variable, which must be an "xts" object. Moreover, "X" must be observed for the same days of daily_ret}
+
+\item{out_of_sample}{\strong{optional} A positive integer indicating the number of periods before the last to keep for out of sample forecasting}
+
+\item{vol_proxy}{\strong{optional} If present, the 'vol_proxy' is the volatility proxy used for the in-sample and out-of-sample (again, if present) evaluation.
+It could be the realized variance. If it left unspecified, vol_proxy is replaced by the squared daily returns}
 }
 \value{
 \code{ugmfit} returns an object of class 'rumidas'. The function \code{\link{summary.rumidas}}
@@ -46,11 +54,11 @@ For details, see: \insertCite{Bollerslev_Wooldridge_1992;textual}{rumidas}.
 \item loglik: The value of the log-likelihood at the maximum.
 \item inf_criteria: The AIC and BIC information criteria.
 \item loss_in_s: The in-sample MSE and QLIKE averages, calculated considering the distance with respect to the volatility proxy (if provided) or the squared daily returns.
-\item est_in_s: The in-sample predicted volatility, that is: \eqn{\sqrt{\hat{\tau}_t \times \hat{g}_{i,t} }}.
-\item est_lr_in_s: The in-sample predicted long-run component of the dependent variable.
+\item est_in_s: The one-step-ahead volatility, for the in-sample period, that is: \eqn{\sqrt{\hat{\tau}_t \times \hat{g}_{i,t} }}.
+\item est_lr_in_s: The one-step-ahead long-run volatility, for the in-sample period.
 \item loss_oos: The out-of-sample MSE and QLIKE averages, calculated considering the distance with respect to the volatility proxy (if provided) or the squared daily returns.
-\item est_oos: The out-of-sample predicted dependent variable, that is: \eqn{\sqrt{\hat{\tau}_t \times \hat{g}_{i,t} }}.
-\item est_lr_oos: The out-of-sample predicted long-run component of the dependent variable.
+\item est_oos: The one-step-ahead volatility, for the out-of-sample period, that is: \eqn{\sqrt{\hat{\tau}_t \times \hat{g}_{i,t} }}.
+\item est_lr_oos: The one-step-ahead long-run volatility, for the out-of-sample period.
 }
 }
 \description{
@@ -58,7 +66,7 @@ Estimates several GARCH-MIDAS-based models, according to two errors' conditional
 the presence of asymmetric terms in the short- and long-run components.
 }
 \details{
-Function \code{ugmfit} implements the estimation and evaluation of the GARCH-MIDAS-based models, with and without the asymmetric term
+Function \code{ugmfit} implements the estimation and evaluation of the GARCH--MIDAS--based models, with and without the asymmetric term
 linked to negative lagged daily returns, according to two distributions for the error term. The general framework assumes that:
 \deqn{r_{i,t}= \sqrt{\tau_t \times g_{i,t} } \epsilon_{i,t},}
 where
@@ -66,16 +74,23 @@ where
 \item \eqn{r_{i,t}} is the daily return for the \eqn{i}-th day (\eqn{i = 1, \ldots, N_t})
 of the period \eqn{t} (for example, a week, a month or a quarter; \eqn{t = 1 , \ldots, T});
 \item \eqn{\tau_{t}} is the long-run component, varying each period \eqn{t};
-\item \eqn{g_{i,t}} is the short-run term, varying each day \eqn{i} of the period \eqn{t};
+\item \eqn{g_{i,t}} is the short--run term, varying each day \eqn{i} of the period \eqn{t};
 \item \eqn{\epsilon_{i,t}} is an \eqn{iid} error term which has a zero mean and unit variance.
 }
-The short-run component of the GARCH-MIDAS (parameter "model" set to "GM") and DAGM, when the parameter "skew" is "YES", is:
+The short--run component of the GARCH--MIDAS (parameter "model" set to "GM") and DAGM (parameter "model" set to "DAGM"),
+when the parameter "skew" is "YES", is:
 \deqn{g_{i,t} = \left(1-\alpha-\gamma/2-\beta\right) + \left(\alpha + \gamma \cdot I_{\left(r_{i-1,t}  < 0 \right)}\right) \frac{\left(r_{i-1,t}\right)^2}{\tau_t} + \beta g_{i-1,t},}
-where \eqn{I_{(\cdot)}} is an indicator function. When, for both the models, the parameter "skew" is set to "NO", \eqn{\gamma} disappears.
-The long-run component of the GARCH-MIDAS is:
+where \eqn{I_{(\cdot)}} is an indicator function.
+The short--run component of the GARCH--MIDAS--X (parameter "model" set to "GMX") and DAGM--X (parameter "model" set to "DAGMX"),
+when the parameter "skew" is "YES", is:
+\deqn{g_{i,t} = \left(1-\alpha-\gamma/2-\beta\right) + \left(\alpha + \gamma \cdot I_{\left(r_{i-1,t}  < 0 \right)}\right) \frac{\left(r_{i-1,t}\right)^2}{\tau_t} + \beta g_{i-1,t} + z \cdot \left(X_{i-1,t}- E(X_{i-1,t})\right).}
+When, for the models GARCH--MIDAS, GARCH--MIDAS--X, DAGM, and DAGM--X, the parameter "skew" is set to "NO", parameter \eqn{\gamma} disappears.
+For details on the GARCH--MIDAS--X and DAGM--X models, see \insertCite{amendola_candila_gallo_2020;textual}{rumidas}.
+The long-run component of the GARCH-MIDAS and GARCH--MIDAS--X models is:
 \deqn{\tau_{t} = \exp \left\{ m + \theta \sum_{j=1}^K \delta_{j}(\omega) X_{t-j}\right\},}
-where \eqn{X_{t}} is the MIDAS term.
-The long-run component of the DAGM model is:
+where \eqn{X_{t}} is the MIDAS term and \eqn{\delta_{j}(\omega)} is the chosen weighting function,
+which can be the Beta (\code{\link{beta_function}}) or Exponential Almon lag (\code{\link{exp_almon}}) functions.
+The long-run component of the DAGM and DAGM--X models is:
 \deqn{\tau_t   =  \exp \left( m + \theta^{+}  \sum_{k=1}^K \delta_k(\omega)^{+}  X_{t-k} I_{\left( X_{t-k} \geq 0 \right)} +  \theta^{-}  \sum_{k=1}^K \delta_k(\omega)^{-} X_{t-k} I_{\left( X_{t-k} < 0 \right)} \right)}
 }
 \examples{
@@ -100,6 +115,12 @@ The long-run component of the DAGM model is:
 # mv_m,K=12,vol_proxy=rv5['2002/2020'],out_of_sample=100)
 # fit_2
 # summary.rumidas(fit_2)
+# estimate a GM-X model, without the skewness parameter
+# r_t<-sp500['2010/2013']
+# X<-vix['2010/2013'] 
+# mv_m<-mv_into_mat(r_t,diff(indpro),K=36,"monthly") 
+# fit_3<-ugmfit(model="GMX",skew="NO",distribution="norm",r_t,mv_m,K=36,X=X)
+# summary.rumidas(fit_3)
 }
 \seealso{
 \code{\link{mv_into_mat}}.

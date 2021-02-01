@@ -11,23 +11,28 @@ umemfit(
   daily_ret = NULL,
   mv_m = NULL,
   K = NULL,
+  z = NULL,
   out_of_sample = NULL
 )
 }
 \arguments{
-\item{model}{Model to estimate. Valid choices are: "MEMMIDAS" for MEM-MIDAS, "MEM" for base MEM.}
+\item{model}{Model to estimate. Valid choices are: "MEMMIDAS" for MEM-MIDAS, "MEM" for base MEM, "MEMX" for the base MEM with an X term,
+"MEMMIDASX" for the MEM-MIDAS-X}
 
-\item{skew}{The skewness parameter linked to lagged daily returns. Valid choices are: "YES" and "NO".}
+\item{skew}{The skewness parameter linked to lagged daily returns. Valid choices are: "YES" and "NO"}
 
-\item{x}{Dependent variable to predict. Usually the realized volatility. It must be positive and "xts" object.}
+\item{x}{Dependent variable to predict. Usually the realized volatility. It must be positive and "xts" object}
 
-\item{daily_ret}{\strong{optional}. Daily returns, which must be an "xts" object. NULL by default.}
+\item{daily_ret}{\strong{optional}. Daily returns, which must be an "xts" object. NULL by default}
 
-\item{mv_m}{\strong{optional}. MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function. NULL by default.}
+\item{mv_m}{\strong{optional}. MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function. NULL by default}
 
-\item{K}{\strong{optional}. Number of (lagged) realizations of the MIDAS variable to consider. NULL by default.}
+\item{K}{\strong{optional}. Number of (lagged) realizations of the MIDAS variable to consider. NULL by default
+for the Beta and Exponential Almon lag functions, respectively}
 
-\item{out_of_sample}{\strong{optional}. A positive integer indicating the number of periods before the last to keep for out of sample forecasting.}
+\item{z}{\strong{optional}. Additional daily variable, which must be an "xts" object, and with the same length of x. NULL by default}
+
+\item{out_of_sample}{\strong{optional}. A positive integer indicating the number of periods before the last to keep for out of sample forecasting}
 }
 \value{
 \code{umemfit} returns an object of class 'rumidas'. The function \code{\link{summary.rumidas}}
@@ -49,31 +54,33 @@ For details, see: \insertCite{Bollerslev_Wooldridge_1992;textual}{rumidas}, \ins
 }
 }
 \description{
-Estimates several MEM-MIDAS-based models.
+Estimates several MEM and MEM-MIDAS-based models.
 }
 \details{
-Function \code{umemfit} implements the estimation and evaluation of the MEM and MEM-MIDAS models, with and without the asymmetric term
-linked to negative lagged daily returns. The general framework assumes that:
+Function \code{umemfit} implements the estimation and evaluation of the MEM, MEM-MIDAS MEM-X and MEM-MIDAS-X models,
+with and without the asymmetric term linked to negative lagged daily returns. The general framework assumes that:
 \deqn{x_{i,t}= \mu_{i,t}\epsilon_{i,t} = \tau_{t} \xi_{i,t} \epsilon_{i,t},}
 where
 \itemize{
 \item \eqn{x_{i,t}} is a time series coming from a non-negative discrete time process for the \eqn{i}-th day (\eqn{i = 1, \ldots, N_t})
 of the period \eqn{t} (for example, a week, a month or a quarter; \eqn{t = 1 , \ldots, T});
 \item \eqn{\tau_{t}} is the long-run component, determining the average level of the conditional mean, varying each period \eqn{t};
-\item \eqn{\xi_{i,t}} is a factor centered around one, labelled as the short-run term, which plays the role of dumping or amplifying \eqn{\tau_{i,t}};
+\item \eqn{\xi_{i,t}} is a factor centered around one, labelled as the short--run term, which plays the role of dumping or amplifying \eqn{\tau_{i,t}};
 \item \eqn{\epsilon_{i,t}} is an \eqn{iid} error term which, conditionally on the information set, has a unit mean, an unknown variance, and a probability density function
 defined over a non-negative support.
 }
-The short-run component of the MEM-MIDAS is:
-\deqn{\xi_{i,t}=(1-\alpha-\gamma/2-\beta) + \left(\alpha +  \gamma \cdot {I}_{\left(r_{i-1,t}  < 0 \right)}\right) \frac{x_{i-1,t}}{\tau_t} + \beta \xi_{i-1,t},}
-where \eqn{I_{(\cdot)}} is an indicator function and \eqn{r_{i,t}} is the daily return of the day \eqn{i} of the period \eqn{t}.
-The long-run component of the MEM-MIDAS is:
+The short--run component of the MEM-MIDAS-X is:
+\deqn{\xi_{i,t}=(1-\alpha-\gamma/2-\beta) + \left(\alpha +  \gamma \cdot {I}_{\left(r_{i-1,t}  < 0 \right)}\right) \frac{x_{i-1,t}}{\tau_t} + \beta \xi_{i-1,t} + \delta \left(Z_{i-1,t}-E(Z)\right),}
+where \eqn{I_{(\cdot)}} is an indicator function, \eqn{r_{i,t}} is the daily return of the day \eqn{i} of the period \eqn{t} and \eqn{Z} is
+an additional X term (for instance, the VIX). When the X part is absent, then the parameter \eqn{\delta} cancels.
+The long-run component of the MEM-MIDAS and MEM-MIDAS-X is:
 \deqn{\tau_{t} = \exp \left\{ m + \theta \sum_{k=1}^K \delta_{k}(\omega) X_{t-k}\right\},}
 where \eqn{X_{t}} is the MIDAS term. When the "skew" parameter is set to "NO", \eqn{\gamma} disappears.
-The MEM model does not have the difference between the long- and short-run components. Therefore, it directly evolves according to \eqn{\mu_{i,t}}.
-When the "skew" parameter is present:
-\deqn{\mu_{i,t}= \left(1-\alpha - \gamma_{1} / 2 - \beta   \right)\mu + (\alpha + \gamma I_{\left(r_{i-1,t}  < 0 \right)}) x_{i-1,t} +   \beta \mu_{i-1,t},}
+The MEM and MEM-X models do not have the long- and short-run components. Therefore, they directly evolve according to \eqn{\mu_{i,t}}.
+When the "skew" and X parameters are present, the MEM-X is:
+\deqn{\mu_{i,t}= \left(1-\alpha - \gamma / 2 - \beta   \right)\mu + (\alpha + \gamma I_{\left(r_{i-1,t}  < 0 \right)}) x_{i-1,t} +   \beta \mu_{i-1,t}+\delta \left(Z_{i-1,t}-E(Z)\right),}
 where \eqn{\mu=E(x_{i,t})}. When the "skew" parameter is set to "NO", in the previous equation \eqn{\gamma} cancels.
+Finally, when the additional X part is not present, then we have the MEM model, where \eqn{\delta} disappears.
 }
 \examples{
 

@@ -84,3 +84,31 @@
 #' summary(indpro)
 #' plot(indpro)
 "indpro"
+
+#' VIX daily data 
+#'
+#' Daily data on VIX collected from Yahoo Finance site. The VIX data 
+#' have been de-annualized and multiplied by \eqn{100^{-1}}.
+#'
+#' @docType data
+#'
+#' @usage data(vix)
+#'
+#' @format An object of class \code{"xts"}.
+#'
+#' @keywords datasets
+#'
+#' @importFrom Rdpack reprompt
+#' @import xts
+#' @import highfrequency
+#' @import tseries
+#'
+#' @source \href{https://finance.yahoo.com/}{Yahoo Finance}
+#'
+#' @examples
+#' head(vix)
+#' summary(vix)
+#' plot(vix)
+"vix"
+
+

@@ -7,7 +7,7 @@
 MEM_pred(param, x, daily_ret)
 }
 \arguments{
-\item{param}{Vector of starting values. It must be a three--dimensional vector. See the example below.}
+\item{param}{Vector of estimated values.}
 
 \item{x}{Dependent variable, usually the realized volatility. It must be positive and "xts" object.}
 

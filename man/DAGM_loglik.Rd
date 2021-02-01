@@ -4,10 +4,10 @@
 \alias{DAGM_loglik}
 \title{DAGM log-likelihood (with skewness)}
 \usage{
-DAGM_loglik(param, daily_ret, mv_m, K, distribution)
+DAGM_loglik(param, daily_ret, mv_m, K, distribution, lag_fun = "Beta")
 }
 \arguments{
-\item{param}{Vector of starting values. It must be a eight- or nine- dimensional vector. See the examples below.}
+\item{param}{Vector of starting values.}
 
 \item{daily_ret}{Daily returns, which must be an "xts" object.}
 
@@ -15,8 +15,11 @@ DAGM_loglik(param, daily_ret, mv_m, K, distribution)
 
 \item{K}{Number of (lagged) realizations of the MIDAS variable to consider.}
 
-\item{distribution}{The conditional dentisity to use for the innovations. At the moment, valid choices are "norm" and "std", for the Normal
+\item{distribution}{The conditional density to use for the innovations. At the moment, valid choices are "norm" and "std", for the Normal
 and Student-t distributions.}
+
+\item{lag_fun}{\strong{optional}. Lag function to use. Valid choices are "Beta" (by default) and "Almon",
+for the Beta and Exponential Almon lag functions, respectively.}
 }
 \value{
 The resulting vector is the log-likelihood value for each \eqn{i,t}.

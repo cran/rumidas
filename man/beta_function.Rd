@@ -25,11 +25,11 @@ For additional details, see \insertCite{ghysels_2007;textual}{rumidas}.
 }
 \examples{
 # suppose to have four lags: 
-# K<-5 # Note: the number of lags has to be increased by one
+# K<-4 
 # w1<-1	# by setting w1=1, only a monotonically decreasing weighting scheme is allowed
 	#(more recent observations weigh more)
 # w2<-5
-beta_function(1:5,K=5,w1=1,w2=5)
+beta_function(1:4,K=4,w1=1,w2=5)
 }
 \references{
 \insertAllCited{}

@@ -4,16 +4,19 @@
 \alias{GM_cond_vol}
 \title{GARCH-MIDAS conditional volatility (with skewness)}
 \usage{
-GM_cond_vol(param, daily_ret, mv_m, K)
+GM_cond_vol(param, daily_ret, mv_m, K, lag_fun = "Beta")
 }
 \arguments{
-\item{param}{Vector of estimated values. It must be a six- or seven- dimensional vector.}
+\item{param}{Vector of estimated values.}
 
 \item{daily_ret}{Daily returns, which must be an "xts" object.}
 
 \item{mv_m}{MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.}
 
 \item{K}{Number of (lagged) realizations of the MIDAS variable to consider.}
+
+\item{lag_fun}{\strong{optional}. Lag function to use. Valid choices are "Beta" (by default) and "Almon",
+for the Beta and Exponential Almon lag functions, respectively.}
 }
 \value{
 The resulting vector is an "xts" object representing the conditional volatility.
