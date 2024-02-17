@@ -1,3 +1,9 @@
+# rumidas 0.1.2
+
+* Fixed bugs.
+* Introduced random starting values for GARCH-MIDAS and MEM-MIDAS models.
+* Introduced the DAGM with two low-frequency variables ("DAGM2M").
+
 # rumidas 0.1.1
 
 * Added Exponential Almon lag function to weight the lagged realizations of the MIDAS variable for the GARCH-MIDAS models.

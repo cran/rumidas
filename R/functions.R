@@ -11,7 +11,7 @@
 #' @return The weights associated to each lag \eqn{k}, with \eqn{k=1,\cdots,K}.
 #' @importFrom Rdpack reprompt
 #' @references
-#'  \insertAllCited{} 
+#' \insertAllCited{} 
 #' @examples
 #' # suppose to have four lags: 
 #' # K<-4 
@@ -88,35 +88,33 @@ exp_almon<-function(k,K,w1,w2){
 #' @import lubridate
 #' @import zoo
 #' @examples
-#' 
+#' \donttest{
 #' # weekly frequency
 #' # obtain weekly MIDAS variable after daily aggregation
-#' # RV_weekly_sum<-apply.weekly(rv5^0.5,sum) #realized volatility
+#' RV_weekly_sum<-apply.weekly(rv5^0.5,sum) #realized volatility
 #' # then allocate correctly the information
-#' # RV_weekly<-as.xts(coredata(RV_weekly_sum),seq(as.Date("2000-01-10"), 
-#' # by = "week", length.out = length(RV_weekly_sum)))
-#' # use mv_into_mat (two cases, the second one does not work)
-#' # mv_into_mat(sp500['2002/2003-12-26'],diff(RV_weekly['/2003-12']),K=4,type="weekly")
-#' # mv_into_mat(sp500['2002/2003-12-26'],diff(RV_weekly['/2005-12']),K=4,"weekly") #does not work
+#' RV_weekly<-as.xts(coredata(RV_weekly_sum),seq(as.Date("2000-01-10"), 
+#' by = "week", length.out = length(RV_weekly_sum)))
+#' # use mv_into_mat 
+#' mv_into_mat(sp500['2002/2003-12-26'],diff(RV_weekly['/2003-12']),K=4,type="weekly")
 #'
 #' # monthly frequency
-#' # r_t<-sp500['2005/2010']
-#' # mv_into_mat(r_t,diff(indpro),K=12,type="monthly")
+#' r_t<-sp500['2005/2010']
+#' mv_into_mat(r_t,diff(indpro),K=12,type="monthly")
 #'
 #' # quarterly frequency
-#' # RV_quarterly_sum<-apply.quarterly(rv5,sum)
-#' # RV_quarterly<-as.xts(coredata(RV_quarterly_sum),seq(as.Date("2000-04-01"), 
-#' # by = "quarter", length.out = length(RV_quarterly_sum)))
-#' # mv_into_mat(sp500['2004/2010'],diff(RV_quarterly),K=10,type="quarterly")
+#' RV_quarterly_sum<-apply.quarterly(rv5,sum)
+#' RV_quarterly<-as.xts(coredata(RV_quarterly_sum),seq(as.Date("2000-04-01"), 
+#' by = "quarter", length.out = length(RV_quarterly_sum)))
+#' mv_into_mat(sp500['2004/2010'],diff(RV_quarterly),K=10,type="quarterly")
 #' 
 #' # yearly frequency
-#' # RV_yearly_sum<-apply.yearly(rv5,sum)
-#' # RV_yearly<-as.xts(coredata(RV_yearly_sum),seq(as.Date("2001-01-01"), 
-#' # by = "year", length.out = length(RV_yearly_sum)))
-#' # mv_into_mat(sp500['2006/2010'],diff(RV_yearly),K=2,type="yearly")
+#' RV_yearly_sum<-apply.yearly(rv5,sum)
+#' RV_yearly<-as.xts(coredata(RV_yearly_sum),seq(as.Date("2001-01-01"), 
+#' by = "year", length.out = length(RV_yearly_sum)))
+#' mv_into_mat(sp500['2006/2010'],diff(RV_yearly),K=2,type="yearly")
+#' }
 #' @export
-
-## mv_into_mat_f
 
 mv_into_mat<-function(x,mv,K,type){
 
@@ -310,11 +308,12 @@ cat("\n"))
 #' @param object An object of class 'rumidas', that is the result of a call to \code{\link{ugmfit}} or \code{\link{umemfit}}.
 #' @param ... Additional arguments affecting the summary produced.
 #' @examples
-#' 
-#' # r_t<-sp500['2003/2010']
-#' # real<-(rv5['2003/2010'])^0.5		# realized volatility
-#' # fit<-umemfit(model="MEM",skew="NO",x=real)
-#' # summary.rumidas(fit)
+#' \donttest{
+#' r_t<-sp500['2003/2010']
+#' real<-(rv5['2003/2010'])^0.5		# realized volatility
+#' fit<-umemfit(model="MEM",skew="NO",x=real)
+#' summary.rumidas(fit)
+#' }
 #' @importFrom utils capture.output
 #' @export summary.rumidas 
 #' @export
@@ -396,12 +395,14 @@ return(unlist(res))
 #' to the parameters estimated in the in-sample period. Therefore, the estimation object (through the \code{\link{ugmfit}} function)
 #' has to be provided. For additional details, see Eq. (20) in \insertCite{amendola_candila_gallo_2020;textual}{rumidas}.
 #' @examples
-#' # r_t<-sp500['2008']
-#' # X<-(rv5['2008'])^0.5
-#' # mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly") 
-#' # fit<-ugmfit(model="GMX",skew="YES",distribution="norm",r_t,mv_m,K=12,X=X)
+#' \donttest{
+#' r_t<-sp500['2008']
+#' X<-(rv5['2008'])^0.5
+#' mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly") 
+#' fit<-ugmfit(model="GMX",skew="YES",distribution="norm",r_t,mv_m,K=12,X=X)
 #' ### ten days predictions
-#' # multi_step_ahead_pred(fit,h=10,X)
+#' multi_step_ahead_pred(fit,h=10,X)
+#' }
 #' @importFrom Rdpack reprompt
 #' @import maxLik
 #' @export

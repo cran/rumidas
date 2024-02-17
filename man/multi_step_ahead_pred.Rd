@@ -28,12 +28,14 @@ to the parameters estimated in the in-sample period. Therefore, the estimation o
 has to be provided. For additional details, see Eq. (20) in \insertCite{amendola_candila_gallo_2020;textual}{rumidas}.
 }
 \examples{
-# r_t<-sp500['2008']
-# X<-(rv5['2008'])^0.5
-# mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly") 
-# fit<-ugmfit(model="GMX",skew="YES",distribution="norm",r_t,mv_m,K=12,X=X)
+\donttest{
+r_t<-sp500['2008']
+X<-(rv5['2008'])^0.5
+mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly") 
+fit<-ugmfit(model="GMX",skew="YES",distribution="norm",r_t,mv_m,K=12,X=X)
 ### ten days predictions
-# multi_step_ahead_pred(fit,h=10,X)
+multi_step_ahead_pred(fit,h=10,X)
+}
 }
 \references{
 \insertAllCited{}

@@ -8,7 +8,7 @@
 An object of class \code{"xts"}.
 }
 \source{
-Realized library of the \href{https://realized.oxford-man.ox.ac.uk/data/download}{Oxford-Man Institute}
+Realized library of the Oxford-Man Institute
 }
 \usage{
 data(rv5)

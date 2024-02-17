@@ -30,12 +30,13 @@ according to two errors' conditional distributions: Normal and Student-t.
 For details, see \insertCite{amendola_candila_gallo:2019;textual}{rumidas}.
 }
 \examples{
+\donttest{
 # conditional density of the innovations: normal
-# start_val<-c(0.01,0.80,0.05,0,0,1.1,0,1.1)
-# r_t<-sp500['2005/2010']
-# mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
-# sum(DAGM_loglik(start_val,r_t,mv_m,K=12,distribution="norm"))
-
+start_val<-c(0.01,0.80,0.05,0,0,1.1,0,1.1)
+r_t<-sp500['2005/2010']
+mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+sum(DAGM_loglik(start_val,r_t,mv_m,K=12,distribution="norm"))
+}
 }
 \references{
 \insertAllCited{}

@@ -25,30 +25,30 @@ Implements the transformation of the MIDAS variable into a matrix, whose dimensi
 \eqn{N} is the length of the variable \eqn{x}.
 }
 \examples{
-
+\donttest{
 # weekly frequency
 # obtain weekly MIDAS variable after daily aggregation
-# RV_weekly_sum<-apply.weekly(rv5^0.5,sum) #realized volatility
+RV_weekly_sum<-apply.weekly(rv5^0.5,sum) #realized volatility
 # then allocate correctly the information
-# RV_weekly<-as.xts(coredata(RV_weekly_sum),seq(as.Date("2000-01-10"), 
-# by = "week", length.out = length(RV_weekly_sum)))
-# use mv_into_mat (two cases, the second one does not work)
-# mv_into_mat(sp500['2002/2003-12-26'],diff(RV_weekly['/2003-12']),K=4,type="weekly")
-# mv_into_mat(sp500['2002/2003-12-26'],diff(RV_weekly['/2005-12']),K=4,"weekly") #does not work
+RV_weekly<-as.xts(coredata(RV_weekly_sum),seq(as.Date("2000-01-10"), 
+by = "week", length.out = length(RV_weekly_sum)))
+# use mv_into_mat 
+mv_into_mat(sp500['2002/2003-12-26'],diff(RV_weekly['/2003-12']),K=4,type="weekly")
 
 # monthly frequency
-# r_t<-sp500['2005/2010']
-# mv_into_mat(r_t,diff(indpro),K=12,type="monthly")
+r_t<-sp500['2005/2010']
+mv_into_mat(r_t,diff(indpro),K=12,type="monthly")
 
 # quarterly frequency
-# RV_quarterly_sum<-apply.quarterly(rv5,sum)
-# RV_quarterly<-as.xts(coredata(RV_quarterly_sum),seq(as.Date("2000-04-01"), 
-# by = "quarter", length.out = length(RV_quarterly_sum)))
-# mv_into_mat(sp500['2004/2010'],diff(RV_quarterly),K=10,type="quarterly")
+RV_quarterly_sum<-apply.quarterly(rv5,sum)
+RV_quarterly<-as.xts(coredata(RV_quarterly_sum),seq(as.Date("2000-04-01"), 
+by = "quarter", length.out = length(RV_quarterly_sum)))
+mv_into_mat(sp500['2004/2010'],diff(RV_quarterly),K=10,type="quarterly")
 
 # yearly frequency
-# RV_yearly_sum<-apply.yearly(rv5,sum)
-# RV_yearly<-as.xts(coredata(RV_yearly_sum),seq(as.Date("2001-01-01"), 
-# by = "year", length.out = length(RV_yearly_sum)))
-# mv_into_mat(sp500['2006/2010'],diff(RV_yearly),K=2,type="yearly")
+RV_yearly_sum<-apply.yearly(rv5,sum)
+RV_yearly<-as.xts(coredata(RV_yearly_sum),seq(as.Date("2001-01-01"), 
+by = "year", length.out = length(RV_yearly_sum)))
+mv_into_mat(sp500['2006/2010'],diff(RV_yearly),K=2,type="yearly")
+}
 }

@@ -21,10 +21,12 @@ Predicts the dependent variable, usually the realized volatility, for the base M
 For details, see \insertCite{engle_gallo_2006;textual}{rumidas}.
 }
 \examples{
-# est_val<-c(alpha=0.10,beta=0.8,gamma=0.05)
-# real<-(rv5['/2010'])^0.5		# realized volatility
-# r_t<-sp500['/2010']
-# head(MEM_pred(est_val,real,r_t))
+\donttest{
+est_val<-c(alpha=0.10,beta=0.8,gamma=0.05)
+real<-(rv5['/2010'])^0.5		# realized volatility
+r_t<-sp500['/2010']
+head(MEM_pred(est_val,real,r_t))
+}
 }
 \references{
 \insertAllCited{}

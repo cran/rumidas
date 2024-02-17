@@ -39,13 +39,14 @@ Obtains the log-likelihood of the DAGM-X, according to two errors' conditional d
 For details, see \insertCite{amendola_candila_gallo:2019;textual}{rumidas}.
 }
 \examples{
+\donttest{
 # conditional density of the innovations: normal
-# start_val<-c(0.01,0.80,0.05,0,0,1.1,0,1.1)
-# r_t<-sp500['2005/2010']
-# X<-rv5['2005/2010']^0.5
-# mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
-# sum(DAGM_X_loglik_no_skew(start_val,r_t,X,mv_m,K=12,distribution="norm"))
-
+start_val<-c(0.01,0.80,0.05,0,0,1.1,0,1.1)
+r_t<-sp500['2005/2010']
+X<-rv5['2005/2010']^0.5
+mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+sum(DAGM_X_loglik_no_skew(start_val,r_t,X,mv_m,K=12,distribution="norm"))
+}
 }
 \references{
 \insertAllCited{}

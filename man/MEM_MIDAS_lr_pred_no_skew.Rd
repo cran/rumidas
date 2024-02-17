@@ -14,21 +14,20 @@ MEM_MIDAS_lr_pred_no_skew(param, x, mv_m, K)
 \item{mv_m}{MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.}
 
 \item{K}{Number of (lagged) realizations of the MIDAS variable to consider.}
-
-\item{daily_ret}{Daily returns, which must be an "xts" object.}
 }
 \value{
 The resulting vector is the log-likelihood value for each \eqn{i,t}.
 }
 \description{
 Predicts the long-run term of the dependent variable, usually the realized volatility, for the MEM-MIDAS.
-For details, see \insertCite{amendola2020doubly;textual}{rumidas} and \insertCite{engle_gallo_2006;textual}{rumidas}.
 }
 \examples{
-# est_val<-c(alpha=0.10,beta=0.8,m=0,theta=-0.16,w2=5)
-# real<-(rv5['/2010'])^0.5		# realized volatility
-# mv_m<-mv_into_mat(real,diff(indpro),K=12,"monthly")
-# sum(MEM_MIDAS_lr_pred_no_skew(est_val,real,mv_m,K=12))
+\donttest{
+est_val<-c(alpha=0.10,beta=0.8,m=0,theta=-0.16,w2=5)
+real<-(rv5['/2010'])^0.5		# realized volatility
+mv_m<-mv_into_mat(real,diff(indpro),K=12,"monthly")
+sum(MEM_MIDAS_lr_pred_no_skew(est_val,real,mv_m,K=12))
+}
 }
 \references{
 \insertAllCited{}

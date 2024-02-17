@@ -28,11 +28,13 @@ Obtains the daily long-run volatility for the DAGM-X.
 For details, see \insertCite{amendola_candila_gallo:2019;textual}{rumidas}.
 }
 \examples{
-# est_val<-c(0.01,0.80,0.05,0,0.1,1.1,-0.3,1.1)
-# r_t<-sp500['/2010']
-# X<-rv5['/2010']^0.5
-# mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
-# head(DAGM_X_long_run_vol_no_skew(est_val,r_t,X,mv_m,K=12))
+\donttest{
+est_val<-c(0.01,0.80,0.05,0,0.1,1.1,-0.3,1.1)
+r_t<-sp500['/2010']
+X<-rv5['/2010']^0.5
+mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+head(DAGM_X_long_run_vol_no_skew(est_val,r_t,X,mv_m,K=12))
+}
 }
 \references{
 \insertAllCited{}

@@ -15,9 +15,10 @@
 Summary method for 'rumidas' class
 }
 \examples{
-
-# r_t<-sp500['2003/2010']
-# real<-(rv5['2003/2010'])^0.5		# realized volatility
-# fit<-umemfit(model="MEM",skew="NO",x=real)
-# summary.rumidas(fit)
+\donttest{
+r_t<-sp500['2003/2010']
+real<-(rv5['2003/2010'])^0.5		# realized volatility
+fit<-umemfit(model="MEM",skew="NO",x=real)
+summary.rumidas(fit)
+}
 }

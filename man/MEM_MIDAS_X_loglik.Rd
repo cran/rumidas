@@ -25,14 +25,15 @@ The resulting vector is the log-likelihood value for each \eqn{i,t}
 \description{
 Obtains the log-likelihood of the MEM-MIDAS-X, with an asymmetric term linked to past negative returns and an additional
 X part (for instance, the VIX).
-For details, see \insertCite{amendola2020doubly;textual}{rumidas} and \insertCite{engle_gallo_2006;textual}{rumidas}.
 }
 \examples{
-# start_val<-c(alpha=0.10,beta=0.8,gamma=0.1,m=0,theta=-0.16,w2=5,delta=0.1)
-# r_t<-sp500['2010']
-# real<-(rv5['2010'])^0.5		# realized volatility
-# mv_m<-mv_into_mat(real,diff(indpro),K=12,"monthly")
-# sum(MEM_MIDAS_X_loglik(start_val,real,r_t,mv_m,K=12,z=vix['2010']))
+\donttest{
+start_val<-c(alpha=0.10,beta=0.8,gamma=0.1,m=0,theta=-0.16,w2=5,delta=0.1)
+r_t<-sp500['2010']
+real<-(rv5['2010'])^0.5		# realized volatility
+mv_m<-mv_into_mat(real,diff(indpro),K=12,"monthly")
+sum(MEM_MIDAS_X_loglik(start_val,real,r_t,mv_m,K=12,z=vix['2010']))
+}
 }
 \references{
 \insertAllCited{}

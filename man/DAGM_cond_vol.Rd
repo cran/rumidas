@@ -26,12 +26,14 @@ Obtains the conditional volatility for the DAGM, with an asymmetric term linked 
 For details, see \insertCite{amendola_candila_gallo:2019;textual}{rumidas}.
 }
 \examples{
+\donttest{
 # estimated volatility 
-# est_val<-c(0.01,0.80,0.05,0,0.1,1.1,-0.3,1.1)
-# r_t<-sp500['2005/2010']
-# mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
-# vol<-DAGM_cond_vol(est_val,r_t,mv_m,K=12)
-# head(vol)
+est_val<-c(0.01,0.80,0.05,0,0.1,1.1,-0.3,1.1)
+r_t<-sp500['2005/2010']
+mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+vol<-DAGM_cond_vol(est_val,r_t,mv_m,K=12)
+head(vol)
+}
 }
 \references{
 \insertAllCited{}

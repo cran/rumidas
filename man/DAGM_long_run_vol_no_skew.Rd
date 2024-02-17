@@ -19,10 +19,10 @@ DAGM_long_run_vol_no_skew(param, daily_ret, mv_m, K, lag_fun = "Beta")
 for the Beta and Exponential Almon lag functions, respectively.}
 }
 \value{
-The resulting vector is an "xts" object representing the conditional volatility.
+The resulting vector is an "xts" object representing the long-run volatility.
 }
 \description{
-Obtains the daily long-run volatility for the DAGM, without the asymmetric term linked to past negative returns.
+Obtains the daily long-run volatility for the DAGM.
 For details, see \insertCite{amendola_candila_gallo:2019;textual}{rumidas}.
 }
 \examples{

@@ -28,11 +28,13 @@ Obtains the estimated conditional volatility for the GARCH-MIDAS-X model, withou
 For details, see \insertCite{engle_ghysels_sohn_2013;textual}{rumidas} and \insertCite{conrad_lock_2015;textual}{rumidas}.
 }
 \examples{
-# est_val<-c(alpha=0.01,beta=0.8,z=0.1,m=2,theta=0.1,w2=2)
-# r_t<-sp500['/2010']
-# X<-rv5['/2010']^0.5
-# mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
-# head(GM_X_cond_vol_no_skew(est_val,r_t,X,mv_m,K=12))
+\donttest{
+est_val<-c(alpha=0.01,beta=0.8,z=0.1,m=2,theta=0.1,w2=2)
+r_t<-sp500['/2010']
+X<-rv5['/2010']^0.5
+mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+head(GM_X_cond_vol_no_skew(est_val,r_t,X,mv_m,K=12))
+}
 }
 \references{
 \insertAllCited{}

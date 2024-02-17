@@ -20,13 +20,14 @@ The resulting vector is the one-step-ahead prediction for each \eqn{i,t}.
 }
 \description{
 Predicts the dependent variable, usually the realized volatility, for the MEM-MIDAS.
-For details, see \insertCite{amendola2020doubly;textual}{rumidas} and \insertCite{engle_gallo_2006;textual}{rumidas}.
 }
 \examples{
-# est_val<-c(alpha=0.10,beta=0.8,m=0,theta=-0.16,w2=5)
-# real<-(rv5['/2010'])^0.5		# realized volatility
-# mv_m<-mv_into_mat(real,diff(indpro),K=12,"monthly")
-# sum(MEM_MIDAS_pred_no_skew(est_val,real,mv_m,K=12))
+\donttest{
+est_val<-c(alpha=0.10,beta=0.8,m=0,theta=-0.16,w2=5)
+real<-(rv5['/2010'])^0.5		# realized volatility
+mv_m<-mv_into_mat(real,diff(indpro),K=12,"monthly")
+sum(MEM_MIDAS_pred_no_skew(est_val,real,mv_m,K=12))
+}
 }
 \references{
 \insertAllCited{}

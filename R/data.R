@@ -1,4 +1,4 @@
-#' S&P 500 open-to-close daily log-returns
+#' S&P 500 daily log-returns
 #'
 #' Daily data on S&P 500 collected from the realized library of
 #' the Oxford-Man Institute \insertCite{heber_2009}{rumidas}. 
@@ -13,12 +13,11 @@
 #'
 #' @importFrom Rdpack reprompt
 #' @import xts
-#' @import highfrequency
 #' @import tseries
 #' @references
 #' \insertAllCited{} 
 #'
-#' @source Realized library of the \href{https://realized.oxford-man.ox.ac.uk/data/download}{Oxford-Man Institute}
+#' @source Realized library of the Oxford-Man Institute
 #'
 #' @examples
 #' head(sp500)
@@ -42,12 +41,11 @@
 #'
 #' @importFrom Rdpack reprompt
 #' @import xts
-#' @import highfrequency
 #' @import tseries
 #' @references
 #' \insertAllCited{} 
 #'
-#' @source Realized library of the \href{https://realized.oxford-man.ox.ac.uk/data/download}{Oxford-Man Institute}
+#' @source Realized library of the Oxford-Man Institute
 #'
 #' @examples
 #' head(rv5)
@@ -72,7 +70,6 @@
 #'
 #' @importFrom Rdpack reprompt
 #' @import xts
-#' @import highfrequency
 #' @import tseries
 #' @references
 #' \insertAllCited{} 
@@ -100,7 +97,6 @@
 #'
 #' @importFrom Rdpack reprompt
 #' @import xts
-#' @import highfrequency
 #' @import tseries
 #'
 #' @source \href{https://finance.yahoo.com/}{Yahoo Finance}

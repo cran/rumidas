@@ -20,13 +20,14 @@ The resulting vector is the log-likelihood value for each \eqn{i,t}
 }
 \description{
 Obtains the log-likelihood of the MEM-MIDAS.
-For details, see \insertCite{amendola2020doubly;textual}{rumidas} and \insertCite{engle_gallo_2006;textual}{rumidas}.
 }
 \examples{
-# start_val<-c(alpha=0.10,beta=0.8,m=0,theta=-0.16,w2=5)
-# real<-(rv5['/2010'])^0.5		# realized volatility
-# mv_m<-mv_into_mat(real,diff(indpro),K=12,"monthly")
-# sum(MEM_MIDAS_loglik_no_skew(start_val,real,mv_m,K=12))
+\donttest{
+start_val<-c(alpha=0.10,beta=0.8,m=0,theta=-0.16,w2=5)
+real<-(rv5['/2010'])^0.5		# realized volatility
+mv_m<-mv_into_mat(real,diff(indpro),K=12,"monthly")
+sum(MEM_MIDAS_loglik_no_skew(start_val,real,mv_m,K=12))
+}
 }
 \references{
 \insertAllCited{}

@@ -19,9 +19,11 @@ Obtains the log-likelihood of the base MEM.
 For details, see \insertCite{engle_gallo_2006;textual}{rumidas}.
 }
 \examples{
-# start_val<-c(alpha=0.10,beta=0.8)
-# real<-(rv5['/2010'])^0.5		# realized volatility
-# sum(MEM_loglik_no_skew(start_val,real))
+\donttest{
+start_val<-c(alpha=0.10,beta=0.8)
+real<-(rv5['/2010'])^0.5		# realized volatility
+sum(MEM_loglik_no_skew(start_val,real))
+}
 }
 \references{
 \insertAllCited{}

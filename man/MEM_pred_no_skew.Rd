@@ -19,9 +19,11 @@ Predicts the dependent variable, usually the realized volatility, for the base M
 For details, see \insertCite{engle_gallo_2006;textual}{rumidas}.
 }
 \examples{
-# est_val<-c(alpha=0.10,beta=0.8)
-# real<-(rv5['/2010'])^0.5		# realized volatility
-# head(MEM_pred_no_skew(est_val,real))
+\donttest{
+est_val<-c(alpha=0.10,beta=0.8)
+real<-(rv5['/2010'])^0.5		# realized volatility
+head(MEM_pred_no_skew(est_val,real))
+}
 }
 \references{
 \insertAllCited{}

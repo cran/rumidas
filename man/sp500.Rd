@@ -3,12 +3,12 @@
 \docType{data}
 \name{sp500}
 \alias{sp500}
-\title{S&P 500 open-to-close daily log-returns}
+\title{S&P 500 daily log-returns}
 \format{
 An object of class \code{"xts"}.
 }
 \source{
-Realized library of the \href{https://realized.oxford-man.ox.ac.uk/data/download}{Oxford-Man Institute}
+Realized library of the Oxford-Man Institute
 }
 \usage{
 data(sp500)

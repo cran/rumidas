@@ -39,19 +39,21 @@ Obtains the log-likelihood of the GARCH-MIDAS-X, according to two errors' condit
 For details, see \insertCite{engle_ghysels_sohn_2013;textual}{rumidas} and \insertCite{conrad_lock_2015;textual}{rumidas}.
 }
 \examples{
+\donttest{
 # conditional density of the innovations: normal
-# start_val<-c(alpha=0.01,beta=0.8,z=0.1,m=0,theta=0.1,w2=2)
-# r_t<-sp500['2005/2010']
-# X<-rv5['2005/2010']^0.5
-# mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
-# sum(GM_X_loglik_no_skew(start_val,r_t,X,mv_m,K=12,distribution="norm"))
+start_val<-c(alpha=0.01,beta=0.8,z=0.1,m=0,theta=0.1,w2=2)
+r_t<-sp500['2005/2010']
+X<-rv5['2005/2010']^0.5
+mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+sum(GM_X_loglik_no_skew(start_val,r_t,X,mv_m,K=12,distribution="norm"))
 
 # conditional density of the innovations: Student-t
-# start_val<-c(alpha=0.01,beta=0.8,z=0.1,m=0,theta=0.1,w2=2,shape=5)
-# r_t<-sp500['2005/2010']
-# X<-rv5['2005/2010']^0.5
-# mv_m<-mv_into_mat(r_t,indpro,K=12,"monthly")
-# sum(GM_X_loglik_no_skew(start_val,r_t,X,mv_m,K=12,distribution="std"))
+start_val<-c(alpha=0.01,beta=0.8,z=0.1,m=0,theta=0.1,w2=2,shape=5)
+r_t<-sp500['2005/2010']
+X<-rv5['2005/2010']^0.5
+mv_m<-mv_into_mat(r_t,indpro,K=12,"monthly")
+sum(GM_X_loglik_no_skew(start_val,r_t,X,mv_m,K=12,distribution="std"))
+}
 }
 \references{
 \insertAllCited{}

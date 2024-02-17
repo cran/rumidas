@@ -10,16 +10,19 @@ ugmfit(
   distribution,
   daily_ret,
   mv_m,
+  mv_m_2 = NULL,
   K,
+  K_2 = NULL,
   lag_fun = "Beta",
   X = NULL,
   out_of_sample = NULL,
-  vol_proxy = NULL
+  vol_proxy = NULL,
+  R = 100
 )
 }
 \arguments{
 \item{model}{Model to estimate. Valid choices are: "GM" for GARCH-MIDAS, "GMX" for GARCH-MIDAS-X,
-"DAGM" for Double Asymmetric GARCH-MIDAS (DAGM), and "DAGMX" for DAGM-X}
+"DAGM" for Double Asymmetric GARCH-MIDAS (DAGM), "DAGM2M" for DAGM with two MIDAS variables, and "DAGMX" for DAGM-X}
 
 \item{skew}{The skewness parameter to include in the short--run equation. Valid choices are: "YES" and "NO"}
 
@@ -28,9 +31,13 @@ for the Normal and Student-t distribution, respectively}
 
 \item{daily_ret}{Daily returns, which must be an "xts" objectparamter}
 
-\item{mv_m}{MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function}
+\item{mv_m}{(first) MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function}
 
-\item{K}{Number of (lagged) realizations of the MIDAS variable to consider}
+\item{mv_m_2}{\strong{optional} second MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function}
+
+\item{K}{Number of (lagged) realizations of the (first) MIDAS variable to consider}
+
+\item{K_2}{\strong{optional} Number of (lagged) realizations of the (second) MIDAS variable to consider}
 
 \item{lag_fun}{\strong{optional} Lag function to use. Valid choices are "Beta" (by default) and "Almon",
 for the Beta and Exponential Almon lag functions, respectively}
@@ -41,6 +48,9 @@ for the Beta and Exponential Almon lag functions, respectively}
 
 \item{vol_proxy}{\strong{optional} If present, the 'vol_proxy' is the volatility proxy used for the in-sample and out-of-sample (again, if present) evaluation.
 It could be the realized variance. If it left unspecified, vol_proxy is replaced by the squared daily returns}
+
+\item{R}{\strong{optional}.  A positive integer indicating the number of replications used to find the best starting values.
+Equal to 100 by default}
 }
 \value{
 \code{ugmfit} returns an object of class 'rumidas'. The function \code{\link{summary.rumidas}}
@@ -77,12 +87,13 @@ of the period \eqn{t} (for example, a week, a month or a quarter; \eqn{t = 1 , \
 \item \eqn{g_{i,t}} is the short--run term, varying each day \eqn{i} of the period \eqn{t};
 \item \eqn{\epsilon_{i,t}} is an \eqn{iid} error term which has a zero mean and unit variance.
 }
-The short--run component of the GARCH--MIDAS (parameter "model" set to "GM") and DAGM (parameter "model" set to "DAGM"),
-when the parameter "skew" is "YES", is:
+The short--run component of the GARCH--MIDAS (parameter "model" set to "GM"), DAGM (parameter "model" set to "DAGM"), and DAGM with two
+MIDAS variables (parameter "model" set to "DAGM2M") models is as follows.
+When the parameter "skew" is present (set to "YES"):
 \deqn{g_{i,t} = \left(1-\alpha-\gamma/2-\beta\right) + \left(\alpha + \gamma \cdot I_{\left(r_{i-1,t}  < 0 \right)}\right) \frac{\left(r_{i-1,t}\right)^2}{\tau_t} + \beta g_{i-1,t},}
 where \eqn{I_{(\cdot)}} is an indicator function.
 The short--run component of the GARCH--MIDAS--X (parameter "model" set to "GMX") and DAGM--X (parameter "model" set to "DAGMX"),
-when the parameter "skew" is "YES", is:
+when the parameter "skew" is set to "YES", is:
 \deqn{g_{i,t} = \left(1-\alpha-\gamma/2-\beta\right) + \left(\alpha + \gamma \cdot I_{\left(r_{i-1,t}  < 0 \right)}\right) \frac{\left(r_{i-1,t}\right)^2}{\tau_t} + \beta g_{i-1,t} + z \cdot \left(X_{i-1,t}- E(X_{i-1,t})\right).}
 When, for the models GARCH--MIDAS, GARCH--MIDAS--X, DAGM, and DAGM--X, the parameter "skew" is set to "NO", parameter \eqn{\gamma} disappears.
 For details on the GARCH--MIDAS--X and DAGM--X models, see \insertCite{amendola_candila_gallo_2020;textual}{rumidas}.
@@ -91,36 +102,40 @@ The long-run component of the GARCH-MIDAS and GARCH--MIDAS--X models is:
 where \eqn{X_{t}} is the MIDAS term and \eqn{\delta_{j}(\omega)} is the chosen weighting function,
 which can be the Beta (\code{\link{beta_function}}) or Exponential Almon lag (\code{\link{exp_almon}}) functions.
 The long-run component of the DAGM and DAGM--X models is:
-\deqn{\tau_t   =  \exp \left( m + \theta^{+}  \sum_{k=1}^K \delta_k(\omega)^{+}  X_{t-k} I_{\left( X_{t-k} \geq 0 \right)} +  \theta^{-}  \sum_{k=1}^K \delta_k(\omega)^{-} X_{t-k} I_{\left( X_{t-k} < 0 \right)} \right)}
+\deqn{\tau_t   =  \exp \left(m + \theta^{+}  \sum_{k=1}^K \delta_k(\omega)^{+}  X_{t-k} I_{\left( X_{t-k} \geq 0 \right)} +  \theta^{-}  \sum_{k=1}^K \delta_k(\omega)^{-} X_{t-k} I_{\left( X_{t-k} < 0 \right)} \right).}
 }
 \examples{
-
+\donttest{
 # estimate a GARH-MIDAS model, without the skewness parameter
-# r_t<-sp500['2008']
-# mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly") 
-# fit<-ugmfit(model="GM",skew="NO",distribution="norm",r_t,mv_m,K=12)
-# fit
-# summary.rumidas(fit)
-# names(fit)
+r_t<-sp500['2008']
+mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly") 
+fit<-ugmfit(model="GM",skew="NO",distribution="norm",r_t,mv_m,K=12)
+fit
+summary.rumidas(fit)
+names(fit)
 
 # to see the estimated coefficients with the QML standard errors:
-# fit$rob_coef_mat
+fit$rob_coef_mat
 
 # estimate a DAGM model, with the skewness parameter, 
 # including the volatility proxy (realized variance), and
 # leaving the last 100 observations for the out-of-sample evaluation
-# r_t<-sp500['2002/2020']
-# mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly") 
-# fit_2<-ugmfit(model="DAGM",skew="YES",distribution="norm",r_t,
-# mv_m,K=12,vol_proxy=rv5['2002/2020'],out_of_sample=100)
-# fit_2
-# summary.rumidas(fit_2)
+r_t<-sp500['2002/2020']
+mv_m<-mv_into_mat(r_t,diff(indpro),K=12,"monthly") 
+fit_2<-ugmfit(model="DAGM",skew="YES",distribution="norm",r_t,
+mv_m,K=12,vol_proxy=rv5['2002/2020'],out_of_sample=100)
+fit_2
+summary.rumidas(fit_2)
 # estimate a GM-X model, without the skewness parameter
-# r_t<-sp500['2010/2013']
-# X<-vix['2010/2013'] 
-# mv_m<-mv_into_mat(r_t,diff(indpro),K=36,"monthly") 
-# fit_3<-ugmfit(model="GMX",skew="NO",distribution="norm",r_t,mv_m,K=36,X=X)
-# summary.rumidas(fit_3)
+r_t<-sp500['2010/2013']
+X<-vix['2010/2013'] 
+mv_m<-mv_into_mat(r_t,diff(indpro),K=36,"monthly") 
+fit_3<-ugmfit(model="GMX",skew="NO",distribution="norm",r_t,mv_m,K=36,X=X)
+summary.rumidas(fit_3)
+}
+}
+\references{
+\insertAllCited{}
 }
 \seealso{
 \code{\link{mv_into_mat}}.

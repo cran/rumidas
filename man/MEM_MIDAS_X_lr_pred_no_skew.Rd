@@ -22,7 +22,6 @@ The resulting vector is the log-likelihood value for each \eqn{i,t}
 }
 \description{
 Predicts the long-run term of the dependent variable, usually the realized volatility, for the MEM-MIDAS-X, with an additional X part (for instance, the VIX).
-For details, see \insertCite{amendola2020doubly;textual}{rumidas} and \insertCite{engle_gallo_2006;textual}{rumidas}.
 }
 \references{
 \insertAllCited{}

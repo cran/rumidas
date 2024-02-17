@@ -21,14 +21,15 @@ The resulting vector is the log-likelihood value for each \eqn{i,t}.
 \description{
 Obtains the log-likelihood of the base MEM, with an asymmetric term linked to past negative returns and an additional
 X part (for instance, the VIX).
-For details, see \insertCite{amendola2020doubly;textual}{rumidas} and \insertCite{engle_gallo_2006;textual}{rumidas}.
 }
 \examples{
-# start_val<-c(alpha=0.10,beta=0.8,gamma=0.05,delta=0.01)
-# real<-(rv5['/2010'])^0.5		# realized volatility
-# r_t<-sp500['/2010']
-# z<-vix['2010']
-# sum(MEM_X_loglik(start_val,real,r_t,z))
+\donttest{
+start_val<-c(alpha=0.10,beta=0.8,gamma=0.05,delta=0.01)
+real<-(rv5['/2010'])^0.5		# realized volatility
+r_t<-sp500['/2010']
+z<-vix['2010']
+sum(MEM_X_loglik(start_val,real,r_t,z))
+}
 }
 \references{
 \insertAllCited{}

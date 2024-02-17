@@ -12,7 +12,8 @@ umemfit(
   mv_m = NULL,
   K = NULL,
   z = NULL,
-  out_of_sample = NULL
+  out_of_sample = NULL,
+  R = 100
 )
 }
 \arguments{
@@ -33,6 +34,9 @@ for the Beta and Exponential Almon lag functions, respectively}
 \item{z}{\strong{optional}. Additional daily variable, which must be an "xts" object, and with the same length of x. NULL by default}
 
 \item{out_of_sample}{\strong{optional}. A positive integer indicating the number of periods before the last to keep for out of sample forecasting}
+
+\item{R}{\strong{optional}.  A positive integer indicating the number of replications used to find the best starting values.
+Equal to 100 by default}
 }
 \value{
 \code{umemfit} returns an object of class 'rumidas'. The function \code{\link{summary.rumidas}}
@@ -40,7 +44,6 @@ can be used to print a summary of the results. Moreover, an object of class 'rum
 \itemize{
 \item model: The model used for the estimation.
 \item rob_coef_mat: The matrix of estimated coefficients, with the QML standard errors.
-For details, see: \insertCite{Bollerslev_Wooldridge_1992;textual}{rumidas}, \insertCite{engle_gallo_2006;textual}{rumidas}, and  \insertCite{amendola2020doubly;textual}{rumidas}.
 \item obs: The number of daily observations used for the (in-sample) estimation.
 \item period: The period of the in-sample estimation.
 \item loglik: The value of the log-likelihood at the maximum.
@@ -54,7 +57,7 @@ For details, see: \insertCite{Bollerslev_Wooldridge_1992;textual}{rumidas}, \ins
 }
 }
 \description{
-Estimates several MEM and MEM-MIDAS-based models.
+Estimates several MEM and MEM-MIDAS-based models. For details, see \insertCite{amendola2024doubly;textual}{rumidas}
 }
 \details{
 Function \code{umemfit} implements the estimation and evaluation of the MEM, MEM-MIDAS MEM-X and MEM-MIDAS-X models,
@@ -83,7 +86,7 @@ where \eqn{\mu=E(x_{i,t})}. When the "skew" parameter is set to "NO", in the pre
 Finally, when the additional X part is not present, then we have the MEM model, where \eqn{\delta} disappears.
 }
 \examples{
-
+\donttest{
 # estimate the base MEM, without the asymmetric term linked to negative lagged returns
 real<-(rv5['2003/2010'])^0.5		# realized volatility
 fit<-umemfit(model="MEM",skew="NO",x=real)
@@ -97,15 +100,18 @@ names(fit)
 
 # estimate the MEM-MIDAS, with the asymmetric term linked to negative lagged returns,
 # leaving the last 200 observations for the out-of-sample analysis
-# r_t<-sp500['2003/2010']
-# real<-(rv5['2003/2010'])^0.5		# realized volatility
-# mv_m<-mv_into_mat(real,diff(indpro),K=12,"monthly")
-# fit_2<-umemfit(model="MEMMIDAS",skew="YES",x=real,daily_ret=r_t,mv_m=mv_m,K=12,out_of_sample=200)
-# fit_2
-# summary.rumidas(fit_2)
+r_t<-sp500['2003/2010']
+real<-(rv5['2003/2010'])^0.5		# realized volatility
+mv_m<-mv_into_mat(real,diff(indpro),K=12,"monthly")
+fit_2<-umemfit(model="MEMMIDAS",skew="YES",x=real,daily_ret=r_t,mv_m=mv_m,K=12,out_of_sample=200)
+fit_2
+summary.rumidas(fit_2)
 # to see the estimated coefficients with the QML standard errors:
-# fit_2$rob_coef_mat
-
+fit_2$rob_coef_mat
+}
+}
+\references{
+\insertAllCited{}
 }
 \seealso{
 \code{\link{mv_into_mat}}.

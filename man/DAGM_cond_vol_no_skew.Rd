@@ -22,7 +22,7 @@ for the Beta and Exponential Almon lag functions, respectively.}
 The resulting vector is an "xts" object representing the conditional volatility.
 }
 \description{
-Obtains the conditional volatility for the DAGM, without the asymmetric term linked to past negative returns.
+Obtains the conditional volatility for the DAGM.
 For details, see \insertCite{amendola_candila_gallo:2019;textual}{rumidas}.
 }
 \examples{
