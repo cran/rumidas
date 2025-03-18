@@ -25,9 +25,9 @@ X part (for instance, the VIX).
 \examples{
 \donttest{
 start_val<-c(alpha=0.10,beta=0.8,gamma=0.05,delta=0.01)
-real<-(rv5['/2010'])^0.5		# realized volatility
-r_t<-sp500['/2010']
-z<-vix['2010']
+real<-(rv5['2009/2010'])^0.5		# realized volatility
+r_t<-sp500['2009/2010']
+z<-vix['2009/2010']
 sum(MEM_X_loglik(start_val,real,r_t,z))
 }
 }

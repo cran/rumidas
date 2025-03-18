@@ -671,6 +671,354 @@ cond_vol<-as.xts(cond_vol,index(daily_ret))
 }
 
 
+#' GARCH-MIDAS-2M log-likelihood (with skewness)
+#'
+#' Obtains the log-likelihood of the GARCH-MIDAS with two low-frequency variables, with an asymmetric term linked to past negative returns,
+#' according to two errors' conditional distributions: Normal and Student-t. 
+#' For details, see \insertCite{engle_ghysels_sohn_2013;textual}{rumidas} and \insertCite{conrad_lock_2015;textual}{rumidas}.
+#' @param param Vector of starting values. 
+#' @param daily_ret Daily returns, which must be an "xts" object.
+#' @param mv_m_1 first MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param mv_m_2 second MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param K_1 Number of (lagged) realizations of the first MIDAS variable to consider.
+#' @param K_2 Number of (lagged) realizations of the second MIDAS variable to consider.
+#' @param distribution The conditional density to use for the innovations. At the moment, valid choices are "norm" and "std", for the Normal 
+#' and Student-t distributions.
+#' @param lag_fun **optional**. Lag function to use. Valid choices are "Beta" (by default) and "Almon", 
+#' for the Beta and Exponential Almon lag functions, respectively.
+#' @return The resulting vector is the log-likelihood value for each \eqn{i,t}.
+#' @importFrom Rdpack reprompt
+#' @import roll
+#' @seealso \code{\link{mv_into_mat}}.
+#' @references
+#' \insertAllCited{} 
+#' @examples
+#' \donttest{
+#' # conditional density of the innovations: normal
+#' start_val<-c(alpha=0.01,beta=0.8,gamma=0.05,m=0,theta_1=0.1,w2_1=2,theta_2=0.1,w2_2=2)
+#' r_t<-sp500['2005/2010']
+#' mv_m_1<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+#' mv_m_2<-mv_into_mat(r_t,diff(indpro),K=24,"monthly")
+#' sum(GM_2M_loglik(start_val,r_t,mv_m_1,mv_m_2,K_1=12,K_2=24,distribution="norm"))
+#' }
+#' @keywords internal
+#' @export
+
+GM_2M_loglik<-function(param,
+daily_ret,
+mv_m_1,
+mv_m_2,
+K_1,
+K_2,
+distribution,
+lag_fun="Beta"){
+
+if(distribution=="norm"){
+
+        alpha           <- param[1]
+        beta            <- param[2]
+        gamma_1         <- param[3]
+        m               <- param[4]
+        theta_1		<- param[5]
+        w1_1			<- ifelse(lag_fun=="Beta",1,0)
+        w2_1			<- param[6]
+        theta_2		<- param[7]
+        w1_2		   <- ifelse(lag_fun=="Beta",1,0)
+        w2_2			<- param[8]
+         
+		
+       TT              <- length(daily_ret)
+	
+
+		tau_d<-rep(NA,TT)
+
+        g_it                    <- rep(1,TT)            # daily conditional variance 
+        #g_it[[1]]        		<- 0
+		       
+        daily_ret_neg                       <- ifelse(zoo::coredata(daily_ret) < 0,1,0)
+
+        ll                                      <- 0 
+
+##### daily long-run
+
+weight_fun<-ifelse(lag_fun=="Beta",beta_function,exp_almon)
+
+betas_1<-c(rev(weight_fun(1:(K_1+1),(K_1+1),w1_1,w2_1))[2:(K_1+1)],0)
+betas_2<-c(rev(weight_fun(1:(K_2+1),(K_2+1),w1_2,w2_2))[2:(K_2+1)],0)
+
+
+tau_d                      <- exp(
+m+
+theta_1*suppressWarnings(roll_sum(mv_m_1, c(K_1+1),weights = betas_1))[K_1+1,]+
+theta_2*suppressWarnings(roll_sum(mv_m_2, c(K_2+1),weights = betas_2))[K_2+1,] 
+)
+
+
+
+####### short-run 
+
+step_1<-(1-alpha-beta-gamma_1/2)+
+(alpha+gamma_1*daily_ret_neg)*(daily_ret)^2/tau_d
+
+ for(i in 2:TT){
+  g_it[i]      <- sum(step_1[i-1],beta*g_it[i-1],na.rm=T)
+			}
+
+ll <- as.numeric(
+stats::dnorm(daily_ret, mean(daily_ret), sqrt(g_it*tau_d), log = TRUE)
+)
+
+} else {
+
+    alpha           	<- param[1]
+        beta            <- param[2]
+        gamma_1         <- param[3]
+        m               <- param[4]
+          theta_1		<- param[5]
+        w1_1			<- ifelse(lag_fun=="Beta",1,0)
+        w2_1			<- param[6]
+        theta_2		<- param[7]
+        w1_2		   <- ifelse(lag_fun=="Beta",1,0)
+        w2_2			<- param[8]
+	  v			<- param[9]
+         
+		
+       TT              <- length(daily_ret)
+	
+
+		tau_d<-rep(NA,TT)
+
+        g_it                    <- rep(1,TT)            # daily conditional variance 
+        #g_it[[1]]        		<- 0
+		       
+        daily_ret_neg                       <- ifelse(zoo::coredata(daily_ret) < 0,1,0)
+
+        ll                                      <- 0 
+
+##### daily long-run
+
+
+weight_fun<-ifelse(lag_fun=="Beta",beta_function,exp_almon)
+
+
+betas_1<-c(rev(weight_fun(1:(K_1+1),(K_1+1),w1_1,w2_1))[2:(K_1+1)],0)
+betas_2<-c(rev(weight_fun(1:(K_2+1),(K_2+1),w1_2,w2_2))[2:(K_2+1)],0)
+
+
+tau_d                      <- exp(
+m+
+theta_1*suppressWarnings(roll_sum(mv_m_1, c(K_1+1),weights = betas_1))[K_1+1,]+
+theta_2*suppressWarnings(roll_sum(mv_m_2, c(K_2+1),weights = betas_2))[K_2+1,] 
+)
+
+
+####### short-run 
+
+step_1<-(1-alpha-beta-gamma_1/2)+
+(alpha+gamma_1*daily_ret_neg)*(daily_ret)^2/tau_d
+
+ for(i in 2:TT){
+  g_it[i]      <- sum(step_1[i-1],beta*g_it[i-1],na.rm=T)
+			}
+
+###### variance 
+
+h_it<-zoo::coredata(g_it*tau_d)
+
+###### loglik
+
+ll <- log(
+
+gamma((v+1)/2)*gamma(v/2)^-1*((v-2)*h_it)^-0.5*
+(1+zoo::coredata(daily_ret)^2*h_it^-1*(v-2)^-1)^(-(v+1)/2)
+
+)
+
+}
+
+return(ll)
+##### end
+}
+
+
+#' GARCH-MIDAS-2M conditional volatility (with skewness)
+#'
+#' Obtains the conditional volatility of the GARCH-MIDAS with two low-frequency variables, with an asymmetric term linked to past negative returns.
+#' For details, see \insertCite{engle_ghysels_sohn_2013;textual}{rumidas} and \insertCite{conrad_lock_2015;textual}{rumidas}.
+#' @param param Vector of starting values. 
+#' @param daily_ret Daily returns, which must be an "xts" object.
+#' @param mv_m_1 first MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param mv_m_2 second MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param K_1 Number of (lagged) realizations of the first MIDAS variable to consider.
+#' @param K_2 Number of (lagged) realizations of the second MIDAS variable to consider.
+#' @param lag_fun **optional**. Lag function to use. Valid choices are "Beta" (by default) and "Almon", 
+#' for the Beta and Exponential Almon lag functions, respectively.
+#' @return The resulting vector is the conditional volatility for each \eqn{i,t}.
+#' @importFrom Rdpack reprompt
+#' @import roll
+#' @seealso \code{\link{mv_into_mat}}.
+#' @references
+#' \insertAllCited{} 
+#' @examples
+#' \donttest{
+#' est_val<-c(alpha=0.01,beta=0.8,gamma=0.05,m=0,theta_1=0.1,w2_1=2,theta_2=0.1,w2_2=2)
+#' r_t<-sp500['2005/2010']
+#' mv_m_1<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+#' mv_m_2<-mv_into_mat(r_t,diff(indpro),K=24,"monthly")
+#' head(GM_2M_cond_vol(est_val,r_t,mv_m_1,mv_m_2,K_1=12,K_2=24))
+#' }
+#' @keywords internal
+#' @export
+
+GM_2M_cond_vol<-function(param,
+daily_ret,
+mv_m_1,
+mv_m_2,
+K_1,
+K_2,
+lag_fun="Beta"){
+
+        alpha           <- param[1]
+        beta            <- param[2]
+        gamma_1         <- param[3]
+        m               <- param[4]
+        theta_1		<- param[5]
+        w1_1			<- ifelse(lag_fun=="Beta",1,0)
+        w2_1			<- param[6]
+        theta_2		<- param[7]
+        w1_2		   <- ifelse(lag_fun=="Beta",1,0)
+        w2_2			<- param[8]
+         
+		
+       TT              <- length(daily_ret)
+	
+
+		tau_d<-rep(NA,TT)
+
+        g_it                    <- rep(1,TT)            # daily conditional variance 
+        #g_it[[1]]        		<- 0
+		       
+        daily_ret_neg                       <- ifelse(zoo::coredata(daily_ret) < 0,1,0)
+
+       
+##### daily long-run
+
+weight_fun<-ifelse(lag_fun=="Beta",beta_function,exp_almon)
+
+betas_1<-c(rev(weight_fun(1:(K_1+1),(K_1+1),w1_1,w2_1))[2:(K_1+1)],0)
+betas_2<-c(rev(weight_fun(1:(K_2+1),(K_2+1),w1_2,w2_2))[2:(K_2+1)],0)
+
+
+tau_d                      <- exp(
+m+
+theta_1*suppressWarnings(roll_sum(mv_m_1, c(K_1+1),weights = betas_1))[K_1+1,]+
+theta_2*suppressWarnings(roll_sum(mv_m_2, c(K_2+1),weights = betas_2))[K_2+1,] 
+)
+
+
+
+####### short-run 
+
+step_1<-(1-alpha-beta-gamma_1/2)+
+(alpha+gamma_1*daily_ret_neg)*(daily_ret)^2/tau_d
+
+ for(i in 2:TT){
+  g_it[i]      <- sum(step_1[i-1],beta*g_it[i-1],na.rm=T)
+			}
+
+cond_vol<- sqrt(g_it*tau_d)
+cond_vol<-as.xts(cond_vol,index(daily_ret))
+
+##### end
+}
+
+
+
+#' GARCH-MIDAS-2M long-run volatility (with skewness)
+#'
+#' Obtains the long-run volatility of the GARCH-MIDAS with two low-frequency variables, with an asymmetric term linked to past negative returns.
+#' For details, see \insertCite{engle_ghysels_sohn_2013;textual}{rumidas} and \insertCite{conrad_lock_2015;textual}{rumidas}.
+#' @param param Vector of starting values. 
+#' @param daily_ret Daily returns, which must be an "xts" object.
+#' @param mv_m_1 first MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param mv_m_2 second MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param K_1 Number of (lagged) realizations of the first MIDAS variable to consider.
+#' @param K_2 Number of (lagged) realizations of the second MIDAS variable to consider.
+#' @param lag_fun **optional**. Lag function to use. Valid choices are "Beta" (by default) and "Almon", 
+#' for the Beta and Exponential Almon lag functions, respectively.
+#' @return The resulting vector is the long-run volatility for each \eqn{i,t}.
+#' @importFrom Rdpack reprompt
+#' @import roll
+#' @seealso \code{\link{mv_into_mat}}.
+#' @references
+#' \insertAllCited{} 
+#' @examples
+#' \donttest{
+#' # conditional density of the innovations: normal
+#' est_val<-c(alpha=0.01,beta=0.8,gamma=0.05,m=0,theta_1=0.1,w2_1=2,theta_2=0.1,w2_2=2)
+#' r_t<-sp500['2005/2010']
+#' mv_m_1<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+#' mv_m_2<-mv_into_mat(r_t,diff(indpro),K=24,"monthly")
+#' head(GM_2M_long_run_vol(est_val,r_t,mv_m_1,mv_m_2,K_1=12,K_2=24))
+#' }
+#' @keywords internal
+#' @export
+
+GM_2M_long_run_vol<-function(param,
+daily_ret,
+mv_m_1,
+mv_m_2,
+K_1,
+K_2,
+lag_fun="Beta"){
+
+        alpha           <- param[1]
+        beta            <- param[2]
+        gamma_1         <- param[3]
+        m               <- param[4]
+        theta_1		<- param[5]
+        w1_1			<- ifelse(lag_fun=="Beta",1,0)
+        w2_1			<- param[6]
+        theta_2		<- param[7]
+        w1_2		   <- ifelse(lag_fun=="Beta",1,0)
+        w2_2			<- param[8]
+         
+		
+       TT              <- length(daily_ret)
+	
+
+		tau_d<-rep(NA,TT)
+
+        g_it                    <- rep(1,TT)            # daily conditional variance 
+        #g_it[[1]]        		<- 0
+		       
+        daily_ret_neg                       <- ifelse(zoo::coredata(daily_ret) < 0,1,0)
+
+
+##### daily long-run
+
+weight_fun<-ifelse(lag_fun=="Beta",beta_function,exp_almon)
+
+betas_1<-c(rev(weight_fun(1:(K_1+1),(K_1+1),w1_1,w2_1))[2:(K_1+1)],0)
+betas_2<-c(rev(weight_fun(1:(K_2+1),(K_2+1),w1_2,w2_2))[2:(K_2+1)],0)
+
+
+tau_d                      <- exp(
+m+
+theta_1*suppressWarnings(roll_sum(mv_m_1, c(K_1+1),weights = betas_1))[K_1+1,]+
+theta_2*suppressWarnings(roll_sum(mv_m_2, c(K_2+1),weights = betas_2))[K_2+1,] 
+)
+
+
+cond_vol<- sqrt(tau_d)
+cond_vol<-as.xts(cond_vol,index(daily_ret))
+
+##### end
+}
+
+
+
+
 #' GARCH-MIDAS log-likelihood (no skewness)
 #'
 #' Obtains the log-likelihood of the GARCH-MIDAS, according to two errors' conditional distributions: Normal and Student-t.
@@ -1313,6 +1661,339 @@ cond_vol<-as.xts(cond_vol,index(daily_ret))
 ##### end
 }
 
+#' GARCH-MIDAS-2M log-likelihood (without skewness)
+#'
+#' Obtains the log-likelihood of the GARCH-MIDAS with two low-frequency variables,
+#' according to two errors' conditional distributions: Normal and Student-t. 
+#' For details, see \insertCite{engle_ghysels_sohn_2013;textual}{rumidas} and \insertCite{conrad_lock_2015;textual}{rumidas}.
+#' @param param Vector of starting values. 
+#' @param daily_ret Daily returns, which must be an "xts" object.
+#' @param mv_m_1 first MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param mv_m_2 second MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param K_1 Number of (lagged) realizations of the first MIDAS variable to consider.
+#' @param K_2 Number of (lagged) realizations of the second MIDAS variable to consider.
+#' @param distribution The conditional density to use for the innovations. At the moment, valid choices are "norm" and "std", for the Normal 
+#' and Student-t distributions.
+#' @param lag_fun **optional**. Lag function to use. Valid choices are "Beta" (by default) and "Almon", 
+#' for the Beta and Exponential Almon lag functions, respectively.
+#' @return The resulting vector is the log-likelihood value for each \eqn{i,t}.
+#' @importFrom Rdpack reprompt
+#' @import roll
+#' @seealso \code{\link{mv_into_mat}}.
+#' @references
+#' \insertAllCited{} 
+#' @examples
+#' \donttest{
+#' # conditional density of the innovations: normal
+#' start_val<-c(alpha=0.01,beta=0.8,m=0,theta_1=0.1,w2_1=2,theta_2=0.1,w2_2=2)
+#' r_t<-sp500['2005/2010']
+#' mv_m_1<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+#' mv_m_2<-mv_into_mat(r_t,diff(indpro),K=24,"monthly")
+#' sum(GM_2M_loglik_no_skew(start_val,r_t,mv_m_1,mv_m_2,K_1=12,K_2=24,distribution="norm"))
+#' }
+#' @keywords internal
+#' @export
+
+GM_2M_loglik_no_skew<-function(param,
+daily_ret,
+mv_m_1,
+mv_m_2,
+K_1,
+K_2,
+distribution,
+lag_fun="Beta"){
+
+if(distribution=="norm"){
+
+        alpha           <- param[1]
+        beta            <- param[2]
+        m               <- param[3]
+        theta_1		<- param[4]
+        w1_1			<- ifelse(lag_fun=="Beta",1,0)
+        w2_1			<- param[5]
+        theta_2		<- param[6]
+        w1_2		   <- ifelse(lag_fun=="Beta",1,0)
+        w2_2			<- param[7]
+         
+		
+       TT              <- length(daily_ret)
+	
+
+		tau_d<-rep(NA,TT)
+
+        g_it                    <- rep(1,TT)            # daily conditional variance 
+        #g_it[[1]]        		<- 0
+		       
+        ll                                      <- 0 
+
+##### daily long-run
+
+weight_fun<-ifelse(lag_fun=="Beta",beta_function,exp_almon)
+
+betas_1<-c(rev(weight_fun(1:(K_1+1),(K_1+1),w1_1,w2_1))[2:(K_1+1)],0)
+betas_2<-c(rev(weight_fun(1:(K_2+1),(K_2+1),w1_2,w2_2))[2:(K_2+1)],0)
+
+
+tau_d                      <- exp(
+m+
+theta_1*suppressWarnings(roll_sum(mv_m_1, c(K_1+1),weights = betas_1))[K_1+1,]+
+theta_2*suppressWarnings(roll_sum(mv_m_2, c(K_2+1),weights = betas_2))[K_2+1,] 
+)
+
+
+
+####### short-run 
+
+step_1<-(1-alpha-beta)+
+(alpha)*(daily_ret)^2/tau_d
+
+ for(i in 2:TT){
+  g_it[i]      <- sum(step_1[i-1],beta*g_it[i-1],na.rm=T)
+			}
+
+ll <- as.numeric(
+stats::dnorm(daily_ret, mean(daily_ret), sqrt(g_it*tau_d), log = TRUE)
+)
+
+} else {
+
+    alpha           	<- param[1]
+        beta            <- param[2]
+        m               <- param[3]
+          theta_1		<- param[4]
+        w1_1			<- ifelse(lag_fun=="Beta",1,0)
+        w2_1			<- param[5]
+        theta_2		<- param[6]
+        w1_2		   <- ifelse(lag_fun=="Beta",1,0)
+        w2_2			<- param[7]
+	  v			<- param[8]
+         
+		
+       TT              <- length(daily_ret)
+	
+
+		tau_d<-rep(NA,TT)
+
+        g_it                    <- rep(1,TT)            # daily conditional variance 
+        #g_it[[1]]        		<- 0
+		       
+        ll                                      <- 0 
+
+##### daily long-run
+
+
+weight_fun<-ifelse(lag_fun=="Beta",beta_function,exp_almon)
+
+
+betas_1<-c(rev(weight_fun(1:(K_1+1),(K_1+1),w1_1,w2_1))[2:(K_1+1)],0)
+betas_2<-c(rev(weight_fun(1:(K_2+1),(K_2+1),w1_2,w2_2))[2:(K_2+1)],0)
+
+
+tau_d                      <- exp(
+m+
+theta_1*suppressWarnings(roll_sum(mv_m_1, c(K_1+1),weights = betas_1))[K_1+1,]+
+theta_2*suppressWarnings(roll_sum(mv_m_2, c(K_2+1),weights = betas_2))[K_2+1,] 
+)
+
+
+####### short-run 
+
+step_1<-(1-alpha-beta)+
+(alpha)*(daily_ret)^2/tau_d
+
+ for(i in 2:TT){
+  g_it[i]      <- sum(step_1[i-1],beta*g_it[i-1],na.rm=T)
+			}
+
+###### variance 
+
+h_it<-zoo::coredata(g_it*tau_d)
+
+###### loglik
+
+ll <- log(
+
+gamma((v+1)/2)*gamma(v/2)^-1*((v-2)*h_it)^-0.5*
+(1+zoo::coredata(daily_ret)^2*h_it^-1*(v-2)^-1)^(-(v+1)/2)
+
+)
+
+}
+
+return(ll)
+##### end
+}
+
+
+#' GARCH-MIDAS-2M conditional volatility (without skewness)
+#'
+#' Obtains the conditional volatility of the GARCH-MIDAS with two low-frequency variables.
+#' For details, see \insertCite{engle_ghysels_sohn_2013;textual}{rumidas} and \insertCite{conrad_lock_2015;textual}{rumidas}.
+#' @param param Vector of starting values. 
+#' @param daily_ret Daily returns, which must be an "xts" object.
+#' @param mv_m_1 first MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param mv_m_2 second MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param K_1 Number of (lagged) realizations of the first MIDAS variable to consider.
+#' @param K_2 Number of (lagged) realizations of the second MIDAS variable to consider.
+#' @param lag_fun **optional**. Lag function to use. Valid choices are "Beta" (by default) and "Almon", 
+#' for the Beta and Exponential Almon lag functions, respectively.
+#' @return The resulting vector is the conditional volatility for each \eqn{i,t}.
+#' @importFrom Rdpack reprompt
+#' @import roll
+#' @seealso \code{\link{mv_into_mat}}.
+#' @references
+#' \insertAllCited{} 
+#' @examples
+#' \donttest{
+#' est_val<-c(alpha=0.01,beta=0.8,m=0,theta_1=0.1,w2_1=2,theta_2=0.1,w2_2=2)
+#' r_t<-sp500['2005/2010']
+#' mv_m_1<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+#' mv_m_2<-mv_into_mat(r_t,diff(indpro),K=24,"monthly")
+#' head(GM_2M_cond_vol_no_skew(est_val,r_t,mv_m_1,mv_m_2,K_1=12,K_2=24))
+#' }
+#' @keywords internal
+#' @export
+
+GM_2M_cond_vol_no_skew<-function(param,
+daily_ret,
+mv_m_1,
+mv_m_2,
+K_1,
+K_2,
+lag_fun="Beta"){
+
+        alpha           <- param[1]
+        beta            <- param[2]
+        m               <- param[3]
+        theta_1		<- param[4]
+        w1_1			<- ifelse(lag_fun=="Beta",1,0)
+        w2_1			<- param[5]
+        theta_2		<- param[6]
+        w1_2		   <- ifelse(lag_fun=="Beta",1,0)
+        w2_2			<- param[7]
+         
+		
+       TT              <- length(daily_ret)
+	
+
+		tau_d<-rep(NA,TT)
+
+        g_it                    <- rep(1,TT)            # daily conditional variance 
+        #g_it[[1]]        		<- 0
+		       
+       
+##### daily long-run
+
+weight_fun<-ifelse(lag_fun=="Beta",beta_function,exp_almon)
+
+betas_1<-c(rev(weight_fun(1:(K_1+1),(K_1+1),w1_1,w2_1))[2:(K_1+1)],0)
+betas_2<-c(rev(weight_fun(1:(K_2+1),(K_2+1),w1_2,w2_2))[2:(K_2+1)],0)
+
+
+tau_d                      <- exp(
+m+
+theta_1*suppressWarnings(roll_sum(mv_m_1, c(K_1+1),weights = betas_1))[K_1+1,]+
+theta_2*suppressWarnings(roll_sum(mv_m_2, c(K_2+1),weights = betas_2))[K_2+1,] 
+)
+
+
+
+####### short-run 
+
+step_1<-(1-alpha-beta)+
+(alpha)*(daily_ret)^2/tau_d
+
+ for(i in 2:TT){
+  g_it[i]      <- sum(step_1[i-1],beta*g_it[i-1],na.rm=T)
+			}
+
+cond_vol<- sqrt(g_it*tau_d)
+cond_vol<-as.xts(cond_vol,index(daily_ret))
+
+##### end
+}
+
+
+
+#' GARCH-MIDAS-2M long-run volatility (without skewness)
+#'
+#' Obtains the long-run volatility of the GARCH-MIDAS with two low-frequency variables.
+#' For details, see \insertCite{engle_ghysels_sohn_2013;textual}{rumidas} and \insertCite{conrad_lock_2015;textual}{rumidas}.
+#' @param param Vector of starting values. 
+#' @param daily_ret Daily returns, which must be an "xts" object.
+#' @param mv_m_1 first MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param mv_m_2 second MIDAS variable already transformed into a matrix, through \code{\link{mv_into_mat}} function.
+#' @param K_1 Number of (lagged) realizations of the first MIDAS variable to consider.
+#' @param K_2 Number of (lagged) realizations of the second MIDAS variable to consider.
+#' @param lag_fun **optional**. Lag function to use. Valid choices are "Beta" (by default) and "Almon", 
+#' for the Beta and Exponential Almon lag functions, respectively.
+#' @return The resulting vector is the long-run volatility for each \eqn{i,t}.
+#' @importFrom Rdpack reprompt
+#' @import roll
+#' @seealso \code{\link{mv_into_mat}}.
+#' @references
+#' \insertAllCited{} 
+#' @examples
+#' \donttest{
+#' # conditional density of the innovations: normal
+#' est_val<-c(alpha=0.01,beta=0.8,m=0,theta_1=0.1,w2_1=2,theta_2=0.1,w2_2=2)
+#' r_t<-sp500['2005/2010']
+#' mv_m_1<-mv_into_mat(r_t,diff(indpro),K=12,"monthly")
+#' mv_m_2<-mv_into_mat(r_t,diff(indpro),K=24,"monthly")
+#' head(GM_2M_long_run_vol_no_skew(est_val,r_t,mv_m_1,mv_m_2,K_1=12,K_2=24))
+#' }
+#' @keywords internal
+#' @export
+
+GM_2M_long_run_vol_no_skew<-function(param,
+daily_ret,
+mv_m_1,
+mv_m_2,
+K_1,
+K_2,
+lag_fun="Beta"){
+
+        alpha           <- param[1]
+        beta            <- param[2]
+        m               <- param[3]
+        theta_1		<- param[4]
+        w1_1			<- ifelse(lag_fun=="Beta",1,0)
+        w2_1			<- param[5]
+        theta_2		<- param[6]
+        w1_2		   <- ifelse(lag_fun=="Beta",1,0)
+        w2_2			<- param[7]
+         
+		
+       TT              <- length(daily_ret)
+	
+
+		tau_d<-rep(NA,TT)
+
+        g_it                    <- rep(1,TT)            # daily conditional variance 
+        #g_it[[1]]        		<- 0
+		       
+
+##### daily long-run
+
+weight_fun<-ifelse(lag_fun=="Beta",beta_function,exp_almon)
+
+betas_1<-c(rev(weight_fun(1:(K_1+1),(K_1+1),w1_1,w2_1))[2:(K_1+1)],0)
+betas_2<-c(rev(weight_fun(1:(K_2+1),(K_2+1),w1_2,w2_2))[2:(K_2+1)],0)
+
+
+tau_d                      <- exp(
+m+
+theta_1*suppressWarnings(roll_sum(mv_m_1, c(K_1+1),weights = betas_1))[K_1+1,]+
+theta_2*suppressWarnings(roll_sum(mv_m_2, c(K_2+1),weights = betas_2))[K_2+1,] 
+)
+
+
+cond_vol<- sqrt(tau_d)
+cond_vol<-as.xts(cond_vol,index(daily_ret))
+
+##### end
+}
+
 #' DAGM log-likelihood (with skewness)
 #'
 #' Obtains the log-likelihood of the DAGM, with an asymmetric term linked to past negative returns,
@@ -1536,7 +2217,7 @@ if(distribution=="norm"){
         theta_neg_1       	<- param[7]
         w1_neg_1          	<- ifelse(lag_fun=="Beta",1,0)
         w2_neg_1          	<- param[8]
- 		theta_pos_2      	<- param[9]
+ 	    theta_pos_2      	<- param[9]
         w1_pos_2          	<- ifelse(lag_fun=="Beta",1,0)
         w2_pos_2          	<- param[10]
         theta_neg_2       <- param[11]
@@ -4253,9 +4934,9 @@ return(ll)
 #' @examples
 #' \donttest{
 #' start_val<-c(alpha=0.10,beta=0.8,gamma=0.05,delta=0.01)
-#' real<-(rv5['/2010'])^0.5		# realized volatility
-#' r_t<-sp500['/2010']
-#' z<-vix['2010']
+#' real<-(rv5['2009/2010'])^0.5		# realized volatility
+#' r_t<-sp500['2009/2010']
+#' z<-vix['2009/2010']
 #' sum(MEM_X_loglik(start_val,real,r_t,z))
 #' }
 #' @keywords internal
@@ -4372,8 +5053,8 @@ return(x_hat)
 #' @examples
 #' \donttest{
 #' start_val<-c(alpha=0.10,beta=0.8,delta=0.01)
-#' real<-(rv5['/2010'])^0.5		# realized volatility
-#' z<-vix['2010']
+#' real<-(rv5['2009/2010'])^0.5		# realized volatility
+#' z<-vix['2009/2010']
 #' sum(MEM_X_loglik_no_skew(start_val,real,z))
 #' }
 #' @keywords internal
@@ -4956,7 +5637,7 @@ return(x_hat)
 #'
 #' Estimates several GARCH-MIDAS-based models, according to two errors' conditional distributions: Normal and Student-t, and 
 #' the presence of asymmetric terms in the short- and long-run components.
-#' @param model Model to estimate. Valid choices are: "GM" for GARCH-MIDAS, "GMX" for GARCH-MIDAS-X, 
+#' @param model Model to estimate. Valid choices are: "GM" for GARCH-MIDAS, "GM2M" for GARCH-MIDAS with two MIDAS variables, "GMX" for GARCH-MIDAS-X, 
 #' "DAGM" for Double Asymmetric GARCH-MIDAS (DAGM), "DAGM2M" for DAGM with two MIDAS variables, and "DAGMX" for DAGM-X
 #' @param skew The skewness parameter to include in the short--run equation. Valid choices are: "YES" and "NO"
 #' @param distribution The conditional density to use for the innovations. At the moment, valid choices are "norm" and "std", 
@@ -5074,10 +5755,11 @@ vol_proxy=NULL,
 R=100
 ){
 
-############################# check on valid choices
+############################# check on valid choices 
 
-if((model != "GM")&(model != "GMX")&(model != "DAGM")&(model != "DAGM2M")&(model != "DAGMX")) { stop(cat("#Warning:\n Valid choices for the parameter 'model' are 'GM','GMX','DAGM', 'DAGM2M' and 'DAGMX' \n"))}
+if((model != "GM")&(model != "GM2M")&(model != "GMX")&(model != "DAGM")&(model != "DAGM2M")&(model != "DAGMX")) { stop(cat("#Warning:\n Valid choices for the parameter 'model' are 'GM', 'GM2M', 'GMX', 'DAGM', 'DAGM2M', and 'DAGMX' \n"))}
 if((model == "GMX"|model == "DAGMX")&(missing(X))) { stop(cat("#Warning:\n If the model chosen includes the 'X' term, then the 'X' variable has to be provided \n"))}
+if((model == "GM2M")&(missing(mv_m_2)|missing(K_2))) { stop(cat("#Warning:\n If the model is the GARCH-MIDAS with two MIDAS variables (GM2M), then the 'mv_m_2' and 'K_2' parameters have to be provided \n"))}
 if((model == "DAGM2M")&(missing(mv_m_2)|missing(K_2))) { stop(cat("#Warning:\n If the model is the DAGM with two MIDAS variables (DAGM2M), then the 'mv_m_2' and 'K_2' parameters have to be provided \n"))}
 if((skew != "YES")&(skew != "NO")) { stop(cat("#Warning:\n Valid choices for the parameter 'skew' are 'YES' and 'NO' \n"))}
 if((distribution != "norm")&(distribution != "std")) { stop(cat("#Warning:\n Valid choices for the parameter 'distribution' are 'norm' and 'std' \n"))}
@@ -6388,6 +7070,302 @@ cond_vol<-DAGM_2M_cond_vol_no_skew
 long_run_vol<-DAGM_2M_long_run_no_skew
 
 
+} else if (model=="GM2M"&skew=="YES"&distribution=="norm"&lag_fun=="Beta"){
+
+start_val<-begin_val<-ui<-ci<-NULL
+
+begin_val<-matrix(NA,nrow=R,ncol=8)
+colnames(begin_val)<-c("alpha","beta","gamma","m","theta_1","w2_1","theta_2","w2_2")
+begin_val[,1]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,2]<-stats::runif(R,min=0.6,max=0.8)
+begin_val[,3]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,4]<-stats::runif(R,min=-1,max=1)
+begin_val[,5]<-stats::runif(R,min=-1,max=1)
+begin_val[,6]<-1.01
+begin_val[,7]<-stats::runif(R,min=-1,max=1)
+begin_val[,8]<-1.01
+
+which_row<-rep(NA,R)
+
+for(i in 1:R){
+which_row[i]<-sum(GM_2M_loglik(begin_val[i,],
+r_t_in_s,mv_m_1=mv_m_in_s,mv_m_2=mv_m_2_in_s,K_1=K,K_2=K_2,distribution="norm",lag_fun="Beta"))
+}
+
+start_val<-begin_val[which.max(which_row),]
+
+ui<-rbind(
+c(1,0,0,0,0,0,0,0),       	 	 	## alpha>0.0001
+c(0,1,0,0,0,0,0,0),        		 	## beta>0.001
+c(-1,-1,-0.5,0,0,0,0,0),	     		## alpha+beta+gamma/2<1
+c(0,0,0,0,0,1,0,0),				## w2_1>1.001
+c(0,0,0,0,0,0,0,1))				## w2_2>1.001
+
+ci<-c(-0.0001,-0.001,0.999,-1.001,-1.001)
+
+LOGLIK<-GM_2M_loglik
+cond_vol<-GM_2M_cond_vol
+long_run_vol<-GM_2M_long_run_vol
+
+} else if (model=="GM2M"&skew=="YES"&distribution=="std"&lag_fun=="Beta"){
+
+start_val<-begin_val<-ui<-ci<-NULL
+
+begin_val<-matrix(NA,nrow=R,ncol=9)
+colnames(begin_val)<-c("alpha","beta","gamma","m","theta_1","w2_1","theta_2","w2_2","shape")
+begin_val[,1]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,2]<-stats::runif(R,min=0.6,max=0.8)
+begin_val[,3]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,4]<-stats::runif(R,min=-1,max=1)
+begin_val[,5]<-stats::runif(R,min=-1,max=1)
+begin_val[,6]<-1.01
+begin_val[,7]<-stats::runif(R,min=-1,max=1)
+begin_val[,8]<-1.01
+begin_val[,9]<-stats::runif(R,min=2.01,max=10)
+
+which_row<-rep(NA,R)
+
+for(i in 1:R){
+which_row[i]<-sum(GM_2M_loglik(begin_val[i,],
+r_t_in_s,mv_m_1=mv_m_in_s,mv_m_2=mv_m_2_in_s,K_1=K,K_2=K_2,distribution="std",lag_fun="Beta"))
+}
+
+start_val<-begin_val[which.max(which_row),]
+
+ui<-rbind(
+c(1,0,0,0,0,0,0,0,0),       	 	 	## alpha>0.0001
+c(0,1,0,0,0,0,0,0,0),        		 	## beta>0.001
+c(-1,-1,-0.5,0,0,0,0,0,0),	     		## alpha+beta+gamma/2<1
+c(0,0,0,0,0,1,0,0,0),				 	## w2_1>1.001
+c(0,0,0,0,0,0,0,1,0),				 	## w2_2>1.001
+c(0,0,0,0,0,0,0,0,1))					## shape > 2.001
+
+ci<-c(-0.0001,-0.001,0.999,-1.001,-1.001,-2.001)
+
+LOGLIK<-GM_2M_loglik
+cond_vol<-GM_2M_cond_vol
+long_run_vol<-GM_2M_long_run_vol
+
+} else if (model=="GM2M"&skew=="YES"&distribution=="norm"&lag_fun=="Almon"){
+
+start_val<-begin_val<-ui<-ci<-NULL
+
+begin_val<-matrix(NA,nrow=R,ncol=8)
+colnames(begin_val)<-c("alpha","beta","gamma","m","theta_1","w2_1","theta_2","w2_2")
+begin_val[,1]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,2]<-stats::runif(R,min=0.6,max=0.8)
+begin_val[,3]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,4]<-stats::runif(R,min=-1,max=1)
+begin_val[,5]<-stats::runif(R,min=-1,max=1)
+begin_val[,6]<- -0.1
+begin_val[,7]<-stats::runif(R,min=-1,max=1)
+begin_val[,8]<- -0.1
+
+which_row<-rep(NA,R)
+
+for(i in 1:R){
+which_row[i]<-sum(GM_2M_loglik(begin_val[i,],
+r_t_in_s,mv_m_1=mv_m_in_s,mv_m_2=mv_m_2_in_s,K_1=K,K_2=K_2,distribution="norm",lag_fun="Almon"))
+} 
+
+start_val<-begin_val[which.max(which_row),]
+
+ui<-rbind(
+c(1,0,0,0,0,0,0,0),       	 	 	## alpha>0.0001
+c(0,1,0,0,0,0,0,0),        		 	## beta>0.001
+c(-1,-1,-0.5,0,0,0,0,0),	     		## alpha+beta+gamma/2<1
+c(0,0,0,0,0,-1,0,0),				## w2_1<0
+c(0,0,0,0,0,0,0,-1))               ## w2_2<0
+
+ci<-c(-0.0001,-0.001,0.999,0,0)
+
+LOGLIK<-GM_2M_loglik
+cond_vol<-GM_2M_cond_vol
+long_run_vol<-GM_2M_long_run_vol
+
+} else if (model=="GM2M"&skew=="YES"&distribution=="std"&lag_fun=="Almon"){
+
+start_val<-begin_val<-ui<-ci<-NULL
+
+begin_val<-matrix(NA,nrow=R,ncol=9)
+colnames(begin_val)<-c("alpha","beta","gamma","m","theta_1","w2_1","theta_2","w2_2","shape")
+begin_val[,1]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,2]<-stats::runif(R,min=0.6,max=0.8)
+begin_val[,3]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,4]<-stats::runif(R,min=-1,max=1)
+begin_val[,5]<-stats::runif(R,min=-1,max=1)
+begin_val[,6]<- -0.01
+begin_val[,7]<-stats::runif(R,min=-1,max=1)
+begin_val[,8]<- -0.01
+begin_val[,9]<-stats::runif(R,min=2.01,max=10)
+
+which_row<-rep(NA,R)
+
+for(i in 1:R){
+which_row[i]<-sum(GM_2M_loglik(begin_val[i,],
+r_t_in_s,mv_m_1=mv_m_in_s,mv_m_2=mv_m_2_in_s,K_1=K,K_2=K_2,distribution="std",lag_fun="Almon"))
+}
+
+start_val<-begin_val[which.max(which_row),]
+
+ui<-rbind(
+c(1,0,0,0,0,0,0,0,0),       	 	 	## alpha>0.0001
+c(0,1,0,0,0,0,0,0,0),        		 	## beta>0.001
+c(-1,-1,-0.5,0,0,0,0,0,0),	     			## alpha+beta+gamma/2<1
+c(0,0,0,0,0,-1,0,0,0),				## w2_1<0
+c(0,0,0,0,0,0,0,-1,0),				## w2_2<0
+c(0,0,0,0,0,0,0,0,1))					## shape > 2.001
+
+ci<-c(-0.0001,-0.001,0.999,0,0,-2.001)
+
+LOGLIK<-GM_2M_loglik
+cond_vol<-GM_2M_cond_vol
+long_run_vol<-GM_2M_long_run_vol
+
+} else if (model=="GM2M"&skew=="NO"&distribution=="norm"&lag_fun=="Beta"){
+
+start_val<-begin_val<-ui<-ci<-NULL
+
+begin_val<-matrix(NA,nrow=R,ncol=7)
+colnames(begin_val)<-c("alpha","beta","m","theta_1","w2_1","theta_2","w2_2")
+begin_val[,1]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,2]<-stats::runif(R,min=0.6,max=0.8)
+begin_val[,3]<-stats::runif(R,min=-1,max=1)
+begin_val[,4]<-stats::runif(R,min=-1,max=1)
+begin_val[,5]<-1.01
+begin_val[,6]<-stats::runif(R,min=-1,max=1)
+begin_val[,7]<-1.01
+
+which_row<-rep(NA,R)
+
+for(i in 1:R){
+which_row[i]<-sum(GM_2M_loglik_no_skew(begin_val[i,],
+r_t_in_s,mv_m_1=mv_m_in_s,mv_m_2=mv_m_2_in_s,K_1=K,K_2=K_2,distribution="norm",lag_fun="Beta"))
+}
+
+start_val<-begin_val[which.max(which_row),]
+
+ui<-rbind(
+c(1,0,0,0,0,0,0),       	 	 	## alpha>0.0001
+c(0,1,0,0,0,0,0),        		 	## beta>0.001
+c(0,0,0,0,1,0,0),				## w2_1>1.001
+c(0,0,0,0,0,0,1))				## w2_2>1.001
+
+ci<-c(-0.0001,-0.001,-1.001,-1.001)
+
+LOGLIK<-GM_2M_loglik_no_skew
+cond_vol<-GM_2M_cond_vol_no_skew
+long_run_vol<-GM_2M_long_run_vol_no_skew
+
+} else if (model=="GM2M"&skew=="NO"&distribution=="std"&lag_fun=="Beta"){
+
+start_val<-begin_val<-ui<-ci<-NULL
+
+begin_val<-matrix(NA,nrow=R,ncol=8)
+colnames(begin_val)<-c("alpha","beta","m","theta_1","w2_1","theta_2","w2_2","shape")
+begin_val[,1]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,2]<-stats::runif(R,min=0.6,max=0.8)
+begin_val[,3]<-stats::runif(R,min=-1,max=1)
+begin_val[,4]<-stats::runif(R,min=-1,max=1)
+begin_val[,5]<-1.01
+begin_val[,6]<-stats::runif(R,min=-1,max=1)
+begin_val[,7]<-1.01
+begin_val[,8]<-stats::runif(R,min=2.01,max=10)
+
+which_row<-rep(NA,R)
+
+for(i in 1:R){
+which_row[i]<-sum(GM_2M_loglik_no_skew(begin_val[i,],
+r_t_in_s,mv_m_1=mv_m_in_s,mv_m_2=mv_m_2_in_s,K_1=K,K_2=K_2,distribution="std",lag_fun="Beta"))
+}
+
+start_val<-begin_val[which.max(which_row),]
+
+ui<-rbind(
+c(1,0,0,0,0,0,0,0),       	 	 	## alpha>0.0001
+c(0,1,0,0,0,0,0,0),        		 	## beta>0.001
+c(0,0,0,0,1,0,0,0),				 	## w2_1>1.001
+c(0,0,0,0,0,0,1,0),				 	## w2_2>1.001
+c(0,0,0,0,0,0,0,1))					## shape > 2.001
+
+ci<-c(-0.0001,-0.001,-1.001,-1.001,-2.001)
+
+LOGLIK<-GM_2M_loglik_no_skew
+cond_vol<-GM_2M_cond_vol_no_skew
+long_run_vol<-GM_2M_long_run_vol_no_skew
+
+} else if (model=="GM2M"&skew=="NO"&distribution=="norm"&lag_fun=="Almon"){
+
+start_val<-begin_val<-ui<-ci<-NULL
+
+begin_val<-matrix(NA,nrow=R,ncol=7)
+colnames(begin_val)<-c("alpha","beta","m","theta_1","w2_1","theta_2","w2_2")
+begin_val[,1]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,2]<-stats::runif(R,min=0.6,max=0.8)
+begin_val[,3]<-stats::runif(R,min=-1,max=1)
+begin_val[,4]<-stats::runif(R,min=-1,max=1)
+begin_val[,5]<- -0.1
+begin_val[,6]<-stats::runif(R,min=-1,max=1)
+begin_val[,7]<- -0.1
+
+which_row<-rep(NA,R)
+
+for(i in 1:R){
+which_row[i]<-sum(GM_2M_loglik_no_skew(begin_val[i,],
+r_t_in_s,mv_m_1=mv_m_in_s,mv_m_2=mv_m_2_in_s,K_1=K,K_2=K_2,distribution="norm",lag_fun="Almon"))
+} 
+
+start_val<-begin_val[which.max(which_row),]
+
+ui<-rbind(
+c(1,0,0,0,0,0,0),       	 	 	## alpha>0.0001
+c(0,1,0,0,0,0,0),        		 	## beta>0.001
+c(0,0,0,0,-1,0,0),				## w2_1<0
+c(0,0,0,0,0,0,-1))               ## w2_2<0
+
+ci<-c(-0.0001,-0.001,0,0)
+
+LOGLIK<-GM_2M_loglik_no_skew
+cond_vol<-GM_2M_cond_vol_no_skew
+long_run_vol<-GM_2M_long_run_vol_no_skew
+
+} else if (model=="GM2M"&skew=="NO"&distribution=="std"&lag_fun=="Almon"){
+
+start_val<-begin_val<-ui<-ci<-NULL
+
+begin_val<-matrix(NA,nrow=R,ncol=8)
+colnames(begin_val)<-c("alpha","beta","m","theta_1","w2_1","theta_2","w2_2","shape")
+begin_val[,1]<-stats::runif(R,min=0.001,max=0.095)
+begin_val[,2]<-stats::runif(R,min=0.6,max=0.8)
+begin_val[,3]<-stats::runif(R,min=-1,max=1)
+begin_val[,4]<-stats::runif(R,min=-1,max=1)
+begin_val[,5]<- -0.01
+begin_val[,6]<-stats::runif(R,min=-1,max=1)
+begin_val[,7]<- -0.01
+begin_val[,8]<-stats::runif(R,min=2.01,max=10)
+
+which_row<-rep(NA,R)
+
+for(i in 1:R){
+which_row[i]<-sum(GM_2M_loglik_no_skew(begin_val[i,],
+r_t_in_s,mv_m_1=mv_m_in_s,mv_m_2=mv_m_2_in_s,K_1=K,K_2=K_2,distribution="std",lag_fun="Almon"))
+}
+
+start_val<-begin_val[which.max(which_row),]
+
+ui<-rbind(
+c(1,0,0,0,0,0,0,0),       	 	 	## alpha>0.0001
+c(0,1,0,0,0,0,0,0),        		 	## beta>0.001
+c(0,0,0,0,-1,0,0,0),				## w2_1<0
+c(0,0,0,0,0,0,-1,0),				## w2_2<0
+c(0,0,0,0,0,0,0,1))					## shape > 2.001
+
+ci<-c(-0.0001,-0.001,0,0,-2.001)
+
+LOGLIK<-GM_2M_loglik_no_skew
+cond_vol<-GM_2M_cond_vol_no_skew
+long_run_vol<-GM_2M_long_run_vol_no_skew
+
 }
 
 ####################################### begin estimation
@@ -6410,9 +7388,10 @@ K=K,
 lag_fun=lag_fun,
 distribution=distribution,
 constraints=list(ineqA=ui, ineqB=ci),
+control = list(iterlim = 10000, reltol = 1e-12),
 iterlim=1000,
 method="BFGS"))
-} else if (model=="DAGM2M") {
+} else if (model=="DAGM2M"|model=="GM2M") {
 est<-suppressWarnings(maxLik(
 logLik=LOGLIK,
 start=start_val,
@@ -6425,6 +7404,7 @@ lag_fun=lag_fun,
 distribution=distribution,
 constraints=list(ineqA=ui, ineqB=ci),
 iterlim=1000,
+control = list(iterlim = 10000, reltol = 1e-12),
 method="BFGS"))
 } else {
 est<-suppressWarnings(maxLik(
@@ -6437,6 +7417,7 @@ lag_fun=lag_fun,
 distribution=distribution,
 constraints=list(ineqA=ui, ineqB=ci),
 iterlim=1000,
+control = list(iterlim = 10000, reltol = 1e-12),
 method="BFGS"))
 }
 
@@ -6478,7 +7459,7 @@ est_coef<-est_coef[-N_coef]
 if(!missing(X)){ 
 vol_est<-(cond_vol(est_coef,r_t_in_s,X_in_s,mv_m_in_s,K=K,lag_fun=lag_fun))^2
 lr_vol<-long_run_vol(est_coef,r_t_in_s,X_in_s,mv_m_in_s,K=K,lag_fun=lag_fun)
-} else if (model=="DAGM2M") {
+} else if (model=="DAGM2M"|model=="GM2M") {
 vol_est<-(cond_vol(est_coef,r_t_in_s,mv_m_1=mv_m_in_s,mv_m_2=mv_m_2_in_s,
 K_1=K,K_2=K_2,lag_fun=lag_fun))^2
 lr_vol<-long_run_vol(est_coef,r_t_in_s,mv_m_1=mv_m_in_s,mv_m_2=mv_m_2_in_s,
@@ -6512,7 +7493,7 @@ est_lr_in_s=lr_vol)
 r_t_oos<-daily_ret[(N-out_of_sample+1):N]
 mv_m_oos<-mv_m[,(N-out_of_sample+1):(N)]
 
-if (model=="DAGM2M"){
+if (model=="DAGM2M"|model=="GM2M"){
 mv_m_oos_2<-mv_m_2[,(N-out_of_sample+1):(N)]
 }
 
@@ -6533,7 +7514,7 @@ X_oos<-X-mean(X)
 X_oos_f<-X_oos[(N-out_of_sample+1):N]
 vol_est_oos<-(cond_vol(est_coef,r_t_oos,X_oos_f,mv_m_oos,K=K,lag_fun=lag_fun))^2
 LR_oos<-(long_run_vol(est_coef,r_t_oos,X_oos_f,mv_m_oos,K=K,lag_fun=lag_fun))
-} else if (model=="DAGM2M") {
+} else if (model=="DAGM2M"|model=="GM2M") {
 vol_est_oos<-(cond_vol(est_coef,r_t_oos,mv_m_1=mv_m_oos,mv_m_2=mv_m_oos_2,
 K_1=K,K_2=K_2,lag_fun=lag_fun))^2
 LR_oos<-(long_run_vol(est_coef,r_t_oos,mv_m_1=mv_m_oos,mv_m_2=mv_m_oos_2,

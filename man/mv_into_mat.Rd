@@ -26,6 +26,7 @@ Implements the transformation of the MIDAS variable into a matrix, whose dimensi
 }
 \examples{
 \donttest{
+require(xts)
 # weekly frequency
 # obtain weekly MIDAS variable after daily aggregation
 RV_weekly_sum<-apply.weekly(rv5^0.5,sum) #realized volatility

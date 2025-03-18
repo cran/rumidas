@@ -22,8 +22,8 @@ Obtains the log-likelihood of the base MEM, with an additional X part (for insta
 \examples{
 \donttest{
 start_val<-c(alpha=0.10,beta=0.8,delta=0.01)
-real<-(rv5['/2010'])^0.5		# realized volatility
-z<-vix['2010']
+real<-(rv5['2009/2010'])^0.5		# realized volatility
+z<-vix['2009/2010']
 sum(MEM_X_loglik_no_skew(start_val,real,z))
 }
 }

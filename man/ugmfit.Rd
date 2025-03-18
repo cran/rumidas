@@ -21,7 +21,7 @@ ugmfit(
 )
 }
 \arguments{
-\item{model}{Model to estimate. Valid choices are: "GM" for GARCH-MIDAS, "GMX" for GARCH-MIDAS-X,
+\item{model}{Model to estimate. Valid choices are: "GM" for GARCH-MIDAS, "GM2M" for GARCH-MIDAS with two MIDAS variables, "GMX" for GARCH-MIDAS-X,
 "DAGM" for Double Asymmetric GARCH-MIDAS (DAGM), "DAGM2M" for DAGM with two MIDAS variables, and "DAGMX" for DAGM-X}
 
 \item{skew}{The skewness parameter to include in the short--run equation. Valid choices are: "YES" and "NO"}

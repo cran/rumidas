@@ -1,3 +1,8 @@
+# rumidas 0.1.3
+
+* Fixed bugs.
+* Introduced the GM with two low-frequency variables ("GM2M").
+
 # rumidas 0.1.2
 
 * Fixed bugs.
